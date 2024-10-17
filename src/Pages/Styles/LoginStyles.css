@@ -1,0 +1,93 @@
+.login-form {
+    display: grid;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    margin: 40px auto;
+  }
+  .title{
+    text-align: center;
+  }
+  
+  .logo {
+    width: 90px;
+    height: 90px;
+    margin-bottom: 20px;
+  }
+  
+  .title {
+    margin-bottom: 10px;
+  }
+  
+  .label {
+    margin-bottom: 10px;
+  }
+  
+  .input-field {
+    margin-bottom: 20px;
+    margin: 10px 0;
+    padding: 10px 0;
+  }
+  
+  .submit-button {
+    background-color: #2196f3;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+
+  }
+  
+  .submit-button:hover {
+    background-color: #1976d2;
+  }
+  
+  .error-message {
+    color: red;
+    font-size: 14px;
+    margin-top: 10px;
+  }
+  .forgot-password{
+    text-align: right;
+    padding: 10px;
+  }
+  
+  /* Responsive design */
+  @media (max-width: 768px) {
+    .login-form {
+      padding: 10px;
+      margin: 20px auto;
+    }
+    .logo {
+      width: 80px;
+      height: 80px;
+    }
+    .input-field {
+      margin-bottom: 10px;
+    }
+    .submit-button {
+      padding: 5px 10px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .login-form {
+      padding: 5px;
+      margin: 10px auto;
+    }
+    .logo {
+      width: 50px;
+      height: 50px;
+    }
+    .input-field {
+      margin-bottom: 5px;
+    }
+    .submit-button {
+      padding: 3px 5px;
+    }
+  }

@@ -1,0 +1,41 @@
+.header-appbar {
+  background-color: rgb(75, 156, 226); 
+}
+
+.header-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+}
+
+.header-logo {
+  height: 40px;
+  margin-right: 10px; /* Điều chỉnh khoảng cách giữa logo và chữ */
+}
+
+.header-typography {
+  font-weight: bold;
+  font-size: 1.5rem;
+  margin-left: 10px; /* Thay đổi khoảng cách để đưa nó sát vào logo */
+}
+
+.header-tabs .MuiTab-root {
+  font-size: 1rem;
+  text-transform: none;
+}
+
+.header-tabs .MuiTab-root:hover {
+  color: #ffeb3b;
+}
+
+.header-tabs .Mui-selected {
+  color: #ffeb3b;
+}
+
+.header-account-btn {
+  font-weight: bold;
+  font-size: 1.5rem;
+  border-radius: 20px;
+  border: 1px solid black;
+}
