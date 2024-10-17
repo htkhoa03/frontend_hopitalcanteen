@@ -17,37 +17,37 @@ const Login = () => {
     if (customerCode) {
       const user = checkLogin(null, null, customerCode);
       if (user) {
-        navigate("/menu", { replace: true });
+        navigate("/", { replace: true });
       } else {
-        setError("CustomerCode incorrect");
+        setError("CustomerCode không chính xác");
       }
       return;
     }
     if (!username || !password) {
-      setError("Please enter both username and password");
+      setError("Vui lòng nhập tên đăng nhập và mật khẩu");
       return;
     }
 
     const user = checkLogin(username, password, null);
     if (user) {
-      navigate("/home", { replace: true });
+      navigate("/management-home", { replace: true });
     } else {
-      setError("Username or password incorrect");
+      setError("Tên đăng nhập hoặc mật khẩu không chính xác");
     }
   };
 
   const handleForgotPassword = () => {
-    console.log("Forgot password");
+    console.log("Quên mật khẩu");
   };
 
   return (
     <form onSubmit={handleSubmit} className="login-form">
-      <img src="../../hopital.png" alt="Logo" className="logo" />
+      <img src="../../logo.png" alt="Logo" className="logo" />
       <Typography variant="h4" className="title">
-        Log in
+        Đăng nhập
       </Typography>
       <Typography variant="body1" className="label">
-        Username
+        Tên đăng nhập
       </Typography>
       <TextField
         label="Username"
@@ -56,7 +56,7 @@ const Login = () => {
         className="input-field"
       />
       <Typography variant="body1" className="label">
-        Password
+        Mật khẩu
       </Typography>
       <TextField
         label="Password"
@@ -70,13 +70,13 @@ const Login = () => {
         onClick={handleForgotPassword}
         className="forgot-password"
       >
-        Forgot password?
+        Quên mật khẩu
       </Link>
       <Typography variant="body1" className="label">
-        If you are patient, please entering customer code
+        Nếu bạn là bệnh nhân thì nhập mã bệnh nhân
       </Typography>
       <TextField
-        label="Customer code"
+        label="Customer Code"
         value={customerCode}
         onChange={(event) => setCustomerCode(event.target.value)}
         className="input-field"
@@ -90,9 +90,9 @@ const Login = () => {
           {error}
         </Typography>
       )}
-      <br></br>
+      <br />
       <Button type="submit" variant="contained" className="submit-button">
-        Submit
+        Đăng nhập
       </Button>
     </form>
   );

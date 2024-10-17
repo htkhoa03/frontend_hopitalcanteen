@@ -1,31 +1,34 @@
 import React, { useState, useEffect } from "react";
-import { AppBar, Toolbar, Typography, Tabs, Tab, Button } from "@mui/material";
-import { Link, useLocation } from "react-router-dom";
-import "./Header.css";
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Tabs,
+  Tab,
+  Button,
+  Box,
+} from "@mui/material";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import "./componentStyles/Header.css";
 
-const Header = () => {
+const Header = ({ user }) => {
   const [value, setValue] = useState(0);
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     switch (location.pathname) {
-      case "/":
+      case "/home":
         setValue(0);
         break;
-      case "/menu":
+      case "/user":
         setValue(1);
         break;
-      case "/product-management":
+      case "/login":
         setValue(2);
         break;
-      case "/staff-management":
-        setValue(3);
-        break;
-      case "/report":
-        setValue(4);
-        break;
       default:
-        setValue(0); // Mặc định tab "Home"
+        setValue(0);
     }
   }, [location.pathname]);
 
@@ -33,42 +36,60 @@ const Header = () => {
     setValue(newValue);
   };
 
+  const handleAccountClick = () => {
+    if (user) {
+      navigate("/user");
+    } else {
+      navigate("/login");
+    }
+  };
+
   return (
     <AppBar position="static" className="header-appbar">
-      <Toolbar className="header-toolbar">
-        <img src="../../hopital.png" alt="Logo" className="header-logo" />
-        <Typography variant="h6" className="header-typography">
-          Hopital Canteen
-        </Typography>
-        <Tabs
-          value={value}
-          onChange={handleChange}
-          textColor="inherit"
-          indicatorColor="secondary"
-          className="header-tabs"
-        >
-          <Tab label="Home" component={Link} to="/" />
-          <Tab label="Menu" component={Link} to="/menu" />
-          <Tab
-            label="Product management"
-            component={Link}
-            to="/product-management"
-          />
-          <Tab
-            label="Staff management"
-            component={Link}
-            to="/staff-management"
-          />
-          <Tab label="Report" component={Link} to="/report" />
-        </Tabs>
-        <Button
-          component={Link}
-          to="/account"
-          color="inherit"
-          className="header-account-btn"
-        >
-          Account
-        </Button>
+      <Toolbar
+        className="header-toolbar"
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <Box display="flex" alignItems="center">
+          <img src="../../logo.png" alt="Logo" className="header-logo" />
+          <Typography
+            variant="h6"
+            className="header-typography"
+            style={{ marginLeft: "8px" }}
+          >
+            Canteen Bệnh viện
+          </Typography>
+        </Box>
+
+        <Box display="flex" alignItems="center">
+          <Tabs
+            value={value}
+            onChange={handleChange}
+            textColor="inherit"
+            indicatorColor="secondary"
+            className="header-tabs"
+          >
+            <Tab component={Link} to="/menu" label="Home" />
+            <Tab
+              label={user ? user.username : "Tài khoản"}
+              onClick={handleAccountClick}
+            />
+          </Tabs>
+          {user && (
+            <Button
+              component={Link}
+              to="/user"
+              color="inherit"
+              className="header-account-btn"
+            >
+              {user.username}
+            </Button>
+          )}
+        </Box>
       </Toolbar>
     </AppBar>
   );

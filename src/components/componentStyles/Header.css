@@ -1,0 +1,27 @@
+.header-appbar {
+  background-color: #2c6dc3; 
+}
+
+.header-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-logo {
+  height: 50px; 
+}
+
+.header-typography {
+  color: white;
+  margin-left: 8px; 
+}
+
+.header-tabs {
+  margin-right: 16px; 
+}
+
+.header-account-btn {
+  margin-left: 16px; 
+  background-color: aliceblue;
+}

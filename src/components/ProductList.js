@@ -10,9 +10,6 @@ import {
 const ProductList = ({ products, onAddToCart }) => {
   return (
     <div>
-      <Typography variant="h6" gutterBottom>
-        Products
-      </Typography>
       <div
         style={{
           display: "flex",
@@ -22,7 +19,15 @@ const ProductList = ({ products, onAddToCart }) => {
         }}
       >
         {products.map((product) => (
-          <Card key={product.id} style={{ width: "22%", flex: "0 1 auto" }}>
+          <Card
+            key={product.id}
+            style={{
+              flex: "1 1 calc(25% - 20px)",
+              boxSizing: "border-box",
+              maxWidth: "calc(25% - 20px)",
+              minWidth: "178px",
+            }}
+          >
             <CardMedia
               component="img"
               height="140"
@@ -40,7 +45,7 @@ const ProductList = ({ products, onAddToCart }) => {
                 onClick={() => onAddToCart(product)}
                 style={{ marginTop: "10px" }}
               >
-                Add to cart
+                Thêm vào giỏ hàng
               </Button>
             </CardContent>
           </Card>

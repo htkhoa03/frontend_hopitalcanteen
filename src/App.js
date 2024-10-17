@@ -3,12 +3,9 @@ import "../src/App.css";
 import React from "react";
 import ForgotPassword from "./Pages/ForgotPassword";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import ManagementHome from "./Pages/ManagementHome";
+import User from "./Pages/User";
 import Home from "./Pages/Home";
-import Menu from "./Pages/Menu";
-import ProductManagement from "./Pages/ProductManagement";
-import StaffManagement from "./Pages/StaffManagement";
-import Account from "./Pages/Account";
-import Report from "./Pages/Report";
 
 function App() {
   return (
@@ -20,17 +17,11 @@ function App() {
           path="/forgot-password"
           element={<ForgotPassword></ForgotPassword>}
         />
-        <Route path="/menu" element={<Menu></Menu>} />
         <Route
-          path="/product-management"
-          element={<ProductManagement></ProductManagement>}
+          path="/management-home"
+          element={<ManagementHome></ManagementHome>}
         />
-        <Route
-          path="/staff-management"
-          element={<StaffManagement></StaffManagement>}
-        />
-        <Route path="/report" element={<Report></Report>} />
-        <Route path="/account" element={<Account></Account>} />
+        <Route path="/user" element={<User></User>} />
       </Routes>
     </BrowserRouter>
   );
