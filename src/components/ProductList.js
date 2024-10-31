@@ -36,14 +36,12 @@ const ProductList = ({ products, onAddToCart }) => {
             />
             <CardContent>
               <Typography variant="h6">{product.name}</Typography>
-              <Typography variant="body2">
-                Price: {product.price} VND
-              </Typography>
+              <Typography variant="body2">Giá: {product.price} VND</Typography>
               <Button
                 variant="contained"
                 color="primary"
                 onClick={() => onAddToCart(product)}
-                style={{ marginTop: "10px" }}
+                style={{ marginTop: "10px", fontSize: "11px" }}
               >
                 Thêm vào giỏ hàng
               </Button>

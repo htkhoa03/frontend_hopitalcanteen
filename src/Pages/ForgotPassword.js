@@ -21,7 +21,6 @@ const ForgotPassword = () => {
     e.preventDefault();
     if (validateEmail(email)) {
       setError("");
-      // Xử lý khi email hợp lệ (ví dụ: gửi yêu cầu đặt lại mật khẩu)
       alert(`Link reset password đã được gửi tới: ${email}`);
     } else {
       setError("Vui lòng nhập địa chỉ email hợp lệ");
@@ -29,7 +28,6 @@ const ForgotPassword = () => {
   };
 
   const validateEmail = (email) => {
-    // Kiểm tra định dạng email cơ bản
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return regex.test(email);
   };

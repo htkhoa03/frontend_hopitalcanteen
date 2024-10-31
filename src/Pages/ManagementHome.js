@@ -1,6 +1,7 @@
 import React from "react";
-import Header from "../components/Header";
 import { Typography } from "@mui/material";
+import Header from "../components/Header";
+
 const ManagementHome = () => {
   return (
     <div>

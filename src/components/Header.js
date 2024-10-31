@@ -13,8 +13,13 @@ import "./componentStyles/Header.css";
 
 const Header = ({ user }) => {
   const [value, setValue] = useState(0);
+  const [displayUser, setDisplayUser] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setDisplayUser(user);
+  }, [user]);
 
   useEffect(() => {
     switch (location.pathname) {
@@ -79,14 +84,14 @@ const Header = ({ user }) => {
               onClick={handleAccountClick}
             />
           </Tabs>
-          {user && (
+          {displayUser && (
             <Button
               component={Link}
               to="/user"
               color="inherit"
               className="header-account-btn"
             >
-              {user.username}
+              {displayUser.username}
             </Button>
           )}
         </Box>
