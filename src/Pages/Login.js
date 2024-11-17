@@ -3,6 +3,8 @@ import { Typography, TextField, Button, Link } from "@mui/material";
 import "./Styles/LoginStyles.css";
 import checkLogin from "../utils/data";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { setLogin } from "../redux/userSlice";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -10,6 +12,7 @@ const Login = () => {
   const [customerCode, setCustomerCode] = useState("");
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -17,6 +20,7 @@ const Login = () => {
     if (customerCode) {
       const user = checkLogin(null, null, customerCode);
       if (user) {
+        dispatch(setLogin(true));
         navigate("/", { replace: true });
       } else {
         setError("CustomerCode không chính xác");

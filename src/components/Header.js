@@ -10,12 +10,14 @@ import {
 } from "@mui/material";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import "./componentStyles/Header.css";
+import { useSelector } from "react-redux";
 
 const Header = ({ user }) => {
   const [value, setValue] = useState(0);
   const [displayUser, setDisplayUser] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
+  const login = useSelector((state) => state.user.login);
 
   useEffect(() => {
     setDisplayUser(user);
@@ -79,19 +81,19 @@ const Header = ({ user }) => {
             className="header-tabs"
           >
             <Tab component={Link} to="/menu" label="Home" />
-            <Tab
-              label={user ? user.username : "Tài khoản"}
-              onClick={handleAccountClick}
-            />
           </Tabs>
-          {displayUser && (
+          {login && (
             <Button
               component={Link}
               to="/user"
               color="inherit"
               className="header-account-btn"
+              variant="contained"
+              onClick={handleAccountClick}
+              sx={{ backgroundColor: "white", height: "30px", color: "gray" }}
             >
-              {displayUser.username}
+              Tài Khoản
+              {displayUser?.username}
             </Button>
           )}
         </Box>

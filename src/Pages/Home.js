@@ -2,18 +2,18 @@ import React, { useState } from "react";
 import CategoryList from "../components/CategoryList";
 import ProductList from "../components/ProductList";
 import Cart from "../components/Cart";
+import "../components/componentStyles/Home.css";
 import {
   Box,
   Container,
   TextField,
-  InputLabel,
   Select,
   MenuItem,
   FormControl,
   Grid,
 } from "@mui/material";
-import "../components/componentStyles/Menu.css";
 import Header from "../components/Header";
+import { useSelector } from "react-redux";
 
 const Home = () => {
   const categories = ["Đồ ăn", "Nước uống", "Tráng miệng"];
@@ -67,36 +67,66 @@ const Home = () => {
         id: 7,
         name: "Chè",
         price: 15000,
-        image: "https://example.com/che.jpg",
+        image: "https://www.mazevietnam.com/wp-content/uploads/2018/01/des.jpg",
       },
       {
         id: 8,
         name: "Bánh flan",
         price: 10000,
-        image: "https://example.com/banh-flan.jpg",
+        image:
+          "https://th.bing.com/th/id/R.698765417fd21717594b106b1f179275?rik=FM9Bi27Xok5XpQ&pid=ImgRaw&r=0",
       },
     ],
   };
 
   const [selectedCategory, setSelectedCategory] = useState("Đồ ăn");
-  const [cart, setCart] = useState([]);
+  const [cartItems, setCartItems] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState("asc");
+  const login = useSelector((state) => state.user.login);
 
+  console.log("í login ?:", login);
+
+  // Hàm thêm sản phẩm vào giỏ hàng
   const handleAddToCart = (product) => {
-    const itemIndex = cart.findIndex((item) => item.id === product.id);
-    if (itemIndex === -1) {
-      setCart([...cart, { ...product, quantity: 1 }]);
-    } else {
-      const newCart = [...cart];
-      newCart[itemIndex].quantity += 1;
-      setCart(newCart);
-    }
+    setCartItems((prevItems) => {
+      const existingItem = prevItems.find((item) => item.id === product.id);
+      if (existingItem) {
+        return prevItems.map((item) =>
+          item.id === product.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
+      }
+      return [...prevItems, { ...product, quantity: 1 }];
+    });
+  };
+
+  const handleIncreaseQuantity = (id) => {
+    setCartItems((prevItems) =>
+      prevItems.map((item) =>
+        item.id === id ? { ...item, quantity: item.quantity + 1 } : item
+      )
+    );
+  };
+
+  const handleDecreaseQuantity = (id) => {
+    setCartItems((prevItems) =>
+      prevItems.map((item) =>
+        item.id === id && item.quantity > 1
+          ? { ...item, quantity: item.quantity - 1 }
+          : item
+      )
+    );
+  };
+
+  const handleRemoveFromCart = (id) => {
+    setCartItems((prevItems) => prevItems.filter((item) => item.id !== id));
   };
 
   const handleCheckout = () => {
     alert("Thanh toán thành công!");
-    setCart([]);
+    setCartItems([]);
   };
 
   const filteredProducts = allProducts[selectedCategory].filter((product) =>
@@ -131,7 +161,6 @@ const Home = () => {
           />
 
           <FormControl fullWidth style={{ marginBottom: "20px" }}>
-            <InputLabel id="sort-label">Sắp xếp theo</InputLabel>
             <Select
               labelId="sort-label"
               value={sortOrder}
@@ -147,7 +176,7 @@ const Home = () => {
               <Grid item xs={12} sm={6} md={3} key={product.id}>
                 <ProductList
                   products={[product]}
-                  onAddToCart={handleAddToCart}
+                  onAddToCart={handleAddToCart} // Truyền hàm thêm vào giỏ hàng
                 />
               </Grid>
             ))}
@@ -155,7 +184,13 @@ const Home = () => {
         </Box>
 
         <Box className="cart">
-          <Cart cartItems={cart} onCheckout={handleCheckout} />
+          <Cart
+            cartItems={cartItems} // Truyền sản phẩm trong giỏ hàng
+            onCheckout={handleCheckout} // Truyền hàm thanh toán
+            onRemoveFromCart={handleRemoveFromCart} // Truyền hàm xóa sản phẩm
+            onIncreaseQuantity={handleIncreaseQuantity} // Truyền hàm tăng số lượng
+            onDecreaseQuantity={handleDecreaseQuantity} // Truyền hàm giảm số lượng
+          />
         </Box>
       </Box>
     </Container>

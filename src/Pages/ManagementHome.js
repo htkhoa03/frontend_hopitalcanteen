@@ -1,13 +1,13 @@
 import React from "react";
-import { Typography } from "@mui/material";
+import { Box, Container } from "@mui/material";
 import Header from "../components/Header";
 
 const ManagementHome = () => {
   return (
-    <div>
-      <Header></Header>
-      <Typography>Home</Typography>
-    </div>
+    <Container>
+      <Header />
+      <Box className="management-right"></Box>
+    </Container>
   );
 };
 

@@ -15,9 +15,11 @@ const User = ({ user }) => {
           </Grid>
         </Grid>
       ) : (
-        <Typography>
+        {
+          /* <Typography>
           Vui lòng đăng nhập để xem thông tin tài khoản của bạn.
-        </Typography>
+        </Typography> */
+        }
       )}
     </Container>
   );
