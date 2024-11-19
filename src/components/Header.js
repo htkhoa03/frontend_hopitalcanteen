@@ -9,19 +9,19 @@ import {
   Box,
 } from "@mui/material";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import "./componentStyles/Header.css";
 import { useSelector } from "react-redux";
+import "./componentStyles/Header.css";
 
-const Header = ({ user }) => {
+const Header = () => {
   const [value, setValue] = useState(0);
-  const [displayUser, setDisplayUser] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
   const login = useSelector((state) => state.user.login);
+  const username = useSelector((state) => state.user.username); // Assuming username is stored here
+  const customerCode = useSelector((state) => state.user.customerCode); // Assuming customerCode is stored here
 
-  useEffect(() => {
-    setDisplayUser(user);
-  }, [user]);
+  // Determine which name to display based on login method
+  const displayName = username || customerCode;
 
   useEffect(() => {
     switch (location.pathname) {
@@ -31,7 +31,7 @@ const Header = ({ user }) => {
       case "/user":
         setValue(1);
         break;
-      case "/login":
+      case "/management-home":
         setValue(2);
         break;
       default:
@@ -44,11 +44,7 @@ const Header = ({ user }) => {
   };
 
   const handleAccountClick = () => {
-    if (user) {
-      navigate("/user");
-    } else {
-      navigate("/login");
-    }
+    navigate("/user");
   };
 
   return (
@@ -80,21 +76,27 @@ const Header = ({ user }) => {
             indicatorColor="secondary"
             className="header-tabs"
           >
-            <Tab component={Link} to="/menu" label="Home" />
+            <Tab component={Link} to="/" label="Home" />
           </Tabs>
           {login && (
-            <Button
-              component={Link}
-              to="/user"
-              color="inherit"
-              className="header-account-btn"
-              variant="contained"
-              onClick={handleAccountClick}
-              sx={{ backgroundColor: "white", height: "30px", color: "gray" }}
-            >
-              Tài Khoản
-              {displayUser?.username}
-            </Button>
+            <Box display="flex" alignItems="center">
+              <Typography variant="body1" style={{ marginRight: "8px" }}>
+                Hi,
+              </Typography>
+              <Button
+                color="inherit"
+                className="header-account-btn"
+                variant="contained"
+                onClick={handleAccountClick}
+                sx={{
+                  backgroundColor: "white",
+                  height: "30px",
+                  color: "gray",
+                }}
+              >
+                {displayName ? displayName : "Đăng nhập"}{" "}
+              </Button>
+            </Box>
           )}
         </Box>
       </Toolbar>

@@ -1,9 +1,10 @@
 import React from "react";
-import Header from "../components/Header";
+import SideBar from "../SideBar";
+
 const StaffManagement = () => {
   return (
     <div>
-      <Header></Header>
+      <SideBar />
     </div>
   );
 };

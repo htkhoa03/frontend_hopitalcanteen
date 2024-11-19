@@ -5,7 +5,7 @@ const CategoryList = ({ categories, onSelectCategory }) => {
   return (
     <div>
       <Typography variant="h6" gutterBottom>
-        Danh mục sản phẩm
+        Danh mục SP
       </Typography>
       <List>
         {categories.map((category) => (

@@ -12,8 +12,9 @@ import {
   FormControl,
   Grid,
 } from "@mui/material";
-import Header from "../components/Header";
+
 import { useSelector } from "react-redux";
+import ".././components/componentStyles/Home.css";
 
 const Home = () => {
   const categories = ["Đồ ăn", "Nước uống", "Tráng miệng"];
@@ -85,9 +86,8 @@ const Home = () => {
   const [sortOrder, setSortOrder] = useState("asc");
   const login = useSelector((state) => state.user.login);
 
-  console.log("í login ?:", login);
+  console.log("Đăng nhập:", login);
 
-  // Hàm thêm sản phẩm vào giỏ hàng
   const handleAddToCart = (product) => {
     setCartItems((prevItems) => {
       const existingItem = prevItems.find((item) => item.id === product.id);
@@ -124,8 +124,15 @@ const Home = () => {
     setCartItems((prevItems) => prevItems.filter((item) => item.id !== id));
   };
 
+  const handleUpdateQuantity = (id, quantity) => {
+    setCartItems((prevItems) =>
+      prevItems.map((item) =>
+        item.id === id ? { ...item, quantity: Math.max(1, quantity) } : item
+      )
+    );
+  };
+
   const handleCheckout = () => {
-    alert("Thanh toán thành công!");
     setCartItems([]);
   };
 
@@ -142,12 +149,12 @@ const Home = () => {
 
   return (
     <Container style={{ margin: 0, padding: 0, maxWidth: 2000 }}>
-      <Header />
       <Box className="menu-container">
         <Box className="category-list">
           <CategoryList
             categories={categories}
             onSelectCategory={(category) => setSelectedCategory(category)}
+            sx={{ maxWidth: "100px" }}
           />
         </Box>
 
@@ -176,7 +183,7 @@ const Home = () => {
               <Grid item xs={12} sm={6} md={3} key={product.id}>
                 <ProductList
                   products={[product]}
-                  onAddToCart={handleAddToCart} // Truyền hàm thêm vào giỏ hàng
+                  onAddToCart={handleAddToCart}
                 />
               </Grid>
             ))}
@@ -185,11 +192,12 @@ const Home = () => {
 
         <Box className="cart">
           <Cart
-            cartItems={cartItems} // Truyền sản phẩm trong giỏ hàng
-            onCheckout={handleCheckout} // Truyền hàm thanh toán
-            onRemoveFromCart={handleRemoveFromCart} // Truyền hàm xóa sản phẩm
-            onIncreaseQuantity={handleIncreaseQuantity} // Truyền hàm tăng số lượng
-            onDecreaseQuantity={handleDecreaseQuantity} // Truyền hàm giảm số lượng
+            cartItems={cartItems}
+            onCheckout={handleCheckout}
+            onRemoveFromCart={handleRemoveFromCart}
+            onIncreaseQuantity={handleIncreaseQuantity}
+            onDecreaseQuantity={handleDecreaseQuantity}
+            onUpdateQuantity={handleUpdateQuantity}
           />
         </Box>
       </Box>

@@ -8,9 +8,9 @@
 }
 
 .category-list {
-  flex-basis: 20%;
+  flex-basis: 10%; /* Adjusted to make the category list smaller */
   background-color: #f5f5f5;
-  padding: 20px;
+  padding: 10px;
   border-radius: 8px;
   max-height: 600px;
   overflow-y: auto;
@@ -27,7 +27,7 @@
 }
 
 .cart {
-  flex-basis: 20%;
+  flex-basis: 25%; /* Increased to make the cart section bigger */
   background-color: #f0f0f0;
   padding: 15px;
   border-radius: 8px;
@@ -43,11 +43,17 @@
     gap: 10px; 
   }
 
-  .category-list,
-  .product-list,
+  .category-list {
+    flex-basis: 15%; /* Keep the category list smaller */
+  }
+
+  .product-list {
+    flex-basis: 70%; /* Adjusted the product list to take more space */
+  }
+
   .cart {
-    flex-basis: 100%;
-    max-height: auto; 
+    flex-basis: 30%; /* Increased the cart size */
+    max-height: unset;
     overflow-y: unset;
   }
 }
@@ -57,10 +63,13 @@
     padding: 10px; 
   }
 
-  .category-list,
+  .category-list {
+    flex-basis: 20%; /* Slightly larger for tablets, but still smaller than product/cart */
+  }
+
   .product-list,
   .cart {
-    flex-basis: 100%;
+    flex-basis: 40%; /* Adjust both product and cart size for better balance */
     padding: 15px; 
   }
 }
@@ -70,9 +79,13 @@
     padding: 5px; 
   }
 
-  .category-list,
+  .category-list {
+    flex-basis: 100%; /* Full width on very small screens */
+  }
+
   .product-list,
   .cart {
+    flex-basis: 100%;
     padding: 10px; 
     border-radius: 4px; 
   }

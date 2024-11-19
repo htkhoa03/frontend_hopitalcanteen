@@ -56,7 +56,10 @@ const ProductList = ({ products, onAddToCart }) => {
               variant="contained"
               color="primary"
               onClick={() => handleAddToCart(product)}
-              style={{ marginTop: "10px", fontSize: "11px" }}
+              style={{
+                marginTop: "10px",
+                textTransform: "none",
+              }}
             >
               Thêm vào giỏ hàng
             </Button>

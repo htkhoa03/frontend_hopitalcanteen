@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { Typography, TextField, Button, Link } from "@mui/material";
+import { Typography, TextField, Button } from "@mui/material";
 import "./Styles/LoginStyles.css";
-import checkLogin from "../utils/data";
+import checkLogin from "../utils/data"; // Ensure this utility is well defined
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { setLogin } from "../redux/userSlice";
+import { loginWithUsername, loginWithCustomerCode } from "../redux/userSlice";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -18,30 +18,47 @@ const Login = () => {
     event.preventDefault();
 
     if (customerCode) {
+      // Handle with customerCode
       const user = checkLogin(null, null, customerCode);
       if (user) {
-        dispatch(setLogin(true));
-        navigate("/", { replace: true });
+        dispatch(
+          loginWithCustomerCode({
+            customerCode,
+            phone: user.phone,
+            room: user.room,
+            balance: user.balance,
+            name: user.name,
+          })
+        );
+        navigate("/home", { replace: true });
       } else {
-        setError("CustomerCode không chính xác");
+        setError("Customer Code không chính xác");
       }
       return;
     }
-    if (!username || !password) {
-      setError("Vui lòng nhập tên đăng nhập và mật khẩu");
+
+    if (username && password) {
+      // Handle with username and password
+      const user = checkLogin(username, password, null);
+      if (user) {
+        dispatch(
+          loginWithUsername({
+            username,
+            role: user.role,
+            phone: user.phone,
+            room: user.room,
+            balance: user.balance,
+            name: user.name,
+          })
+        );
+        navigate("/management-home", { replace: true });
+      } else {
+        setError("Tên đăng nhập hoặc mật khẩu không chính xác");
+      }
       return;
     }
 
-    const user = checkLogin(username, password, null);
-    if (user) {
-      navigate("/management-home", { replace: true });
-    } else {
-      setError("Tên đăng nhập hoặc mật khẩu không chính xác");
-    }
-  };
-
-  const handleForgotPassword = () => {
-    console.log("Quên mật khẩu");
+    setError("Vui lòng nhập thông tin đăng nhập hợp lệ");
   };
 
   return (
@@ -69,13 +86,6 @@ const Login = () => {
         onChange={(event) => setPassword(event.target.value)}
         className="input-field"
       />
-      <Link
-        href="/forgot-password"
-        onClick={handleForgotPassword}
-        className="forgot-password"
-      >
-        Quên mật khẩu
-      </Link>
       <Typography variant="body1" className="label">
         Nếu bạn là bệnh nhân thì nhập mã bệnh nhân
       </Typography>

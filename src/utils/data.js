@@ -1,7 +1,7 @@
 const dataUser = [
   {
-    username: "khoa",
-    password: "khoa",
+    username: "NVBH",
+    password: "NVBH",
     customerCode: "12345",
   },
   {
