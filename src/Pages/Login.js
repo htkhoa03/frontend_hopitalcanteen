@@ -14,22 +14,56 @@ const Login = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
+  const customerData = [
+    {
+      customerCode: "C001",
+      name: "Nguyen Thi B",
+      phone: "0123456781",
+      room: "B301",
+      balance: "2,000,000",
+      role: "Patient",
+    },
+    {
+      customerCode: "C002",
+      name: "Tran Thi C",
+      phone: "0123456782",
+      room: "B302",
+      balance: "1,500,000",
+      role: "Patient",
+    },
+    {
+      customerCode: "",
+      name: "Nguyễn Văn A",
+      phone: "0123456781",
+      room: "A301",
+      balance: "2,000,000",
+      role: "Admin",
+    },
+    {
+      customerCode: "67890",
+      name: "Tien",
+      phone: "0123456781",
+      room: "B312321301",
+      balance: "2,000,000",
+      role: "Patient",
+    },
+  ];
+
   const handleSubmit = (event) => {
     event.preventDefault();
 
     if (customerCode) {
       // Handle with customerCode
       const user = checkLogin(null, null, customerCode);
+
       if (user) {
         dispatch(
           loginWithCustomerCode({
             customerCode,
-            phone: user.phone,
-            room: user.room,
-            balance: user.balance,
-            name: user.name,
+            customerData,
           })
         );
+        console.log(user);
         navigate("/home", { replace: true });
       } else {
         setError("Customer Code không chính xác");
@@ -39,7 +73,7 @@ const Login = () => {
 
     if (username && password) {
       // Handle with username and password
-      const user = checkLogin(username, password, null);
+      const user = checkLogin(username, password, "");
       if (user) {
         dispatch(
           loginWithUsername({

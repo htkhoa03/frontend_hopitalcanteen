@@ -17,10 +17,9 @@ const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const login = useSelector((state) => state.user.login);
-  const username = useSelector((state) => state.user.username); // Assuming username is stored here
-  const customerCode = useSelector((state) => state.user.customerCode); // Assuming customerCode is stored here
+  const username = useSelector((state) => state.user.username);
+  const customerCode = useSelector((state) => state.user.customerCode);
 
-  // Determine which name to display based on login method
   const displayName = username || customerCode;
 
   useEffect(() => {

@@ -11,13 +11,12 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { logout } from "../redux/userSlice";
+import { logout, selectUser } from "../redux/userSlice";
 
 const User = () => {
-  const user = useSelector((state) => state.user);
+  const user = useSelector(selectUser);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
   const handleLogout = () => {
     dispatch(logout());
     navigate("/");
