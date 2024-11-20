@@ -5,24 +5,11 @@ import {
   Typography,
   Button,
   CardMedia,
+  Box,
 } from "@mui/material";
 
 const ProductList = ({ products, onAddToCart }) => {
   const [quantity, setQuantity] = useState({});
-
-  // const handleIncrease = (id) => {
-  //   setQuantity((prevQuantities) => ({
-  //     ...prevQuantities,
-  //     [id]: (prevQuantities[id] || 1) + 1,
-  //   }));
-  // };
-
-  // const handleDecrease = (id) => {
-  //   setQuantity((prevQuantities) => ({
-  //     ...prevQuantities,
-  //     [id]: Math.max(1, (prevQuantities[id] || 1) - 1),
-  //   }));
-  // };
 
   const handleAddToCart = (product) => {
     onAddToCart({ ...product, quantity: quantity[product.id] || 1 });
@@ -30,43 +17,94 @@ const ProductList = ({ products, onAddToCart }) => {
   };
 
   return (
-    <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+        gap: "20px",
+      }}
+    >
       {products.map((product) => (
         <Card
           key={product.id}
-          style={{ maxWidth: "calc(25% - 20px)", minWidth: "178px" }}
+          sx={{
+            borderRadius: "10px",
+            overflow: "hidden",
+            transition: "transform 0.3s ease, box-shadow 0.3s ease",
+            boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+            "&:hover": {
+              transform: "translateY(-1px)",
+              // boxShadow: "0px 8px 20px rgba(0, 0, 0, 0.2)",
+            },
+            marginRight: "5px",
+          }}
         >
           <CardMedia
             component="img"
-            height="140"
+            height="150"
             image={product.image}
             alt={product.name}
+            sx={{
+              objectFit: "cover",
+              transition: "transform 0.3s ease",
+              "&:hover": {
+                transform: "scale(1.05)",
+              },
+            }}
           />
-          <CardContent>
-            <Typography variant="h6">{product.name}</Typography>
-            <Typography variant="body2">Giá: {product.price} VND</Typography>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                marginTop: "10px",
-              }}
-            ></div>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => handleAddToCart(product)}
-              style={{
-                marginTop: "10px",
-                textTransform: "none",
+          <CardContent
+            sx={{
+              padding: "16px",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              backgroundColor: "#ffffff",
+            }}
+          >
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: "bold",
+                fontSize: "18px",
+                color: "#333333",
+                textAlign: "center",
               }}
             >
-              Thêm vào giỏ hàng
+              {product.name}
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                fontSize: "16px",
+                color: "#666666",
+                margin: "8px 0",
+              }}
+            >
+              Giá: {product.price.toLocaleString()}
+            </Typography>
+            <Button
+              variant="contained"
+              onClick={() => handleAddToCart(product)}
+              sx={{
+                textTransform: "none",
+                borderRadius: "8px",
+                padding: "10px 16px",
+                backgroundColor: "#4BB4DE",
+                color: "white",
+                fontWeight: "bold",
+                marginTop: "12px",
+                transition: "background-color 0.3s ease",
+                "&:hover": {
+                  backgroundColor: "#345DA7",
+                },
+              }}
+            >
+              Thêm sản phẩm
             </Button>
           </CardContent>
         </Card>
       ))}
-    </div>
+    </Box>
   );
 };
 

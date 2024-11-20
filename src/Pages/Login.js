@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { Typography, TextField, Button } from "@mui/material";
 import "./Styles/LoginStyles.css";
-import checkLogin from "../utils/data"; // Ensure this utility is well defined
+import checkLogin from "../utils/checkLogin";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { loginWithUsername, loginWithCustomerCode } from "../redux/userSlice";
+import { dataUser } from "../utils/data";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -14,56 +15,28 @@ const Login = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const customerData = [
-    {
-      customerCode: "C001",
-      name: "Nguyen Thi B",
-      phone: "0123456781",
-      room: "B301",
-      balance: "2,000,000",
-      role: "Patient",
-    },
-    {
-      customerCode: "C002",
-      name: "Tran Thi C",
-      phone: "0123456782",
-      room: "B302",
-      balance: "1,500,000",
-      role: "Patient",
-    },
-    {
-      customerCode: "",
-      name: "Nguyễn Văn A",
-      phone: "0123456781",
-      room: "A301",
-      balance: "2,000,000",
-      role: "Admin",
-    },
-    {
-      customerCode: "67890",
-      name: "Tien",
-      phone: "0123456781",
-      room: "B312321301",
-      balance: "2,000,000",
-      role: "Patient",
-    },
-  ];
-
   const handleSubmit = (event) => {
     event.preventDefault();
 
+    if (username && password && customerCode) {
+      setError(
+        "Vui lòng chỉ nhập Tên đăng nhập và Mật khẩu hoặc Mã bệnh nhân, không được nhập cả ba."
+      );
+      return;
+    }
+
     if (customerCode) {
       // Handle with customerCode
-      const user = checkLogin(null, null, customerCode);
+      const user = checkLogin("", "", customerCode);
 
       if (user) {
         dispatch(
           loginWithCustomerCode({
             customerCode,
-            customerData,
+            customerData: dataUser,
           })
         );
-        console.log(user);
+
         navigate("/home", { replace: true });
       } else {
         setError("Customer Code không chính xác");
@@ -85,6 +58,7 @@ const Login = () => {
             name: user.name,
           })
         );
+
         navigate("/management-home", { replace: true });
       } else {
         setError("Tên đăng nhập hoặc mật khẩu không chính xác");
@@ -119,6 +93,7 @@ const Login = () => {
         value={password}
         onChange={(event) => setPassword(event.target.value)}
         className="input-field"
+        sx={{ marginBottom: "10px" }}
       />
       <Typography variant="body1" className="label">
         Nếu bạn là bệnh nhân thì nhập mã bệnh nhân

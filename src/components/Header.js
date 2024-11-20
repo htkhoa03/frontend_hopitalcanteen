@@ -11,6 +11,7 @@ import {
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import "./componentStyles/Header.css";
+import HomeIcon from "@mui/icons-material/Home";
 
 const Header = () => {
   const [value, setValue] = useState(0);
@@ -54,6 +55,7 @@ const Header = () => {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
+          backgroundColor: "#345DA7",
         }}
       >
         <Box display="flex" alignItems="center">
@@ -75,7 +77,12 @@ const Header = () => {
             indicatorColor="secondary"
             className="header-tabs"
           >
-            <Tab component={Link} to="/" label="Home" />
+            <Tab
+              component={Link}
+              to="/home"
+              icon={<HomeIcon />}
+              aria-label="home"
+            />
           </Tabs>
           {login && (
             <Box display="flex" alignItems="center">

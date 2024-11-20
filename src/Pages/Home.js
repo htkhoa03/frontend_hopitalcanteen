@@ -2,19 +2,19 @@ import React, { useState } from "react";
 import CategoryList from "../components/CategoryList";
 import ProductList from "../components/ProductList";
 import Cart from "../components/Cart";
+import Search from "../components/Search";
 import "../components/componentStyles/Home.css";
 import {
   Box,
   Container,
-  TextField,
   Select,
   MenuItem,
   FormControl,
   Grid,
+  Button,
+  Badge,
 } from "@mui/material";
-
-import { useSelector } from "react-redux";
-import ".././components/componentStyles/Home.css";
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 
 const Home = () => {
   const categories = ["Đồ ăn", "Nước uống", "Tráng miệng"];
@@ -32,14 +32,14 @@ const Home = () => {
         name: "Phở",
         price: 35000,
         image:
-          "https://th.bing.com/th/id/OIP.v8ofvC7Wv_tSfdUj1edmugHaEK?rs=1&pid=ImgDetMain",
+          "https://th.bing.com/th/id/OIP.M0GvXd20b9ccXOqgqtbjIQHaFb?rs=1&pid=ImgDetMain",
       },
       {
         id: 3,
         name: "Bánh Mì",
         price: 35000,
         image:
-          "https://th.bing.com/th/id/OIP.ZXlR7TWg7XS2HlDhqRqWRAHaEJ?w=2000&h=1121&rs=1&pid=ImgDetMain",
+          "https://th.bing.com/th/id/OIP.IxSQxenayDYM2oZcHwj7PgHaEo?rs=1&pid=ImgDetMain",
       },
       {
         id: 4,
@@ -54,13 +54,15 @@ const Home = () => {
         id: 5,
         name: "Trà sữa",
         price: 25000,
-        image: "https://example.com/tra-sua.jpg",
+        image:
+          "https://th.bing.com/th/id/R.628e01734b9f30067602cd6c528a0716?rik=MO%2bUwmGzyXgsmQ&pid=ImgRaw&r=0",
       },
       {
         id: 6,
         name: "Cà phê",
         price: 20000,
-        image: "https://example.com/ca-phe.jpg",
+        image:
+          "https://th.bing.com/th/id/OIP.k0h3OBYznu6i8U5H8W8q8gHaE8?rs=1&pid=ImgDetMain",
       },
     ],
     "Tráng miệng": [
@@ -68,14 +70,15 @@ const Home = () => {
         id: 7,
         name: "Chè",
         price: 15000,
-        image: "https://www.mazevietnam.com/wp-content/uploads/2018/01/des.jpg",
+        image:
+          "https://th.bing.com/th/id/OIP.PJETXHtjs6GLPGlUrAdmygAAAA?w=450&h=469&rs=1&pid=ImgDetMain",
       },
       {
         id: 8,
         name: "Bánh flan",
         price: 10000,
         image:
-          "https://th.bing.com/th/id/R.698765417fd21717594b106b1f179275?rik=FM9Bi27Xok5XpQ&pid=ImgRaw&r=0",
+          "https://th.bing.com/th/id/OIP.qZgvzvvp4_OPb4c4TX5oJQHaHU?rs=1&pid=ImgDetMain",
       },
     ],
   };
@@ -84,9 +87,11 @@ const Home = () => {
   const [cartItems, setCartItems] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState("asc");
-  const login = useSelector((state) => state.user.login);
+  const [isCartVisible, setIsCartVisible] = useState(false);
 
-  console.log("Đăng nhập:", login);
+  const toggleCartVisibility = () => {
+    setIsCartVisible((prev) => !prev);
+  };
 
   const handleAddToCart = (product) => {
     setCartItems((prevItems) => {
@@ -102,40 +107,6 @@ const Home = () => {
     });
   };
 
-  const handleIncreaseQuantity = (id) => {
-    setCartItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === id ? { ...item, quantity: item.quantity + 1 } : item
-      )
-    );
-  };
-
-  const handleDecreaseQuantity = (id) => {
-    setCartItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === id && item.quantity > 1
-          ? { ...item, quantity: item.quantity - 1 }
-          : item
-      )
-    );
-  };
-
-  const handleRemoveFromCart = (id) => {
-    setCartItems((prevItems) => prevItems.filter((item) => item.id !== id));
-  };
-
-  const handleUpdateQuantity = (id, quantity) => {
-    setCartItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === id ? { ...item, quantity: Math.max(1, quantity) } : item
-      )
-    );
-  };
-
-  const handleCheckout = () => {
-    setCartItems([]);
-  };
-
   const filteredProducts = allProducts[selectedCategory].filter((product) =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -147,6 +118,8 @@ const Home = () => {
     return b.price - a.price;
   });
 
+  const cartQuantity = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+
   return (
     <Container style={{ margin: 0, padding: 0, maxWidth: 2000 }}>
       <Box className="menu-container">
@@ -154,29 +127,32 @@ const Home = () => {
           <CategoryList
             categories={categories}
             onSelectCategory={(category) => setSelectedCategory(category)}
-            sx={{ maxWidth: "100px" }}
           />
         </Box>
 
         <Box className="product-list">
-          <TextField
-            label="Search"
-            variant="outlined"
-            fullWidth
-            onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ marginBottom: "20px" }}
-          />
-
-          <FormControl fullWidth style={{ marginBottom: "20px" }}>
-            <Select
-              labelId="sort-label"
-              value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value)}
-            >
-              <MenuItem value="asc">Giá từ thấp đến cao</MenuItem>
-              <MenuItem value="desc">Giá từ cao đến thấp</MenuItem>
-            </Select>
-          </FormControl>
+          <Box
+            sx={{
+              display: "flex",
+              marginBottom: "20px",
+            }}
+          >
+            <Box sx={{ flex: 1, marginRight: "20px" }}>
+              <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+            </Box>
+            <Box sx={{ marginTop: "20px" }}>
+              <FormControl>
+                <Select
+                  labelId="sort-label"
+                  value={sortOrder}
+                  onChange={(e) => setSortOrder(e.target.value)}
+                >
+                  <MenuItem value="asc">Giá từ thấp đến cao</MenuItem>
+                  <MenuItem value="desc">Giá từ cao đến thấp</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+          </Box>
 
           <Grid container spacing={2}>
             {sortedProducts.map((product) => (
@@ -184,23 +160,50 @@ const Home = () => {
                 <ProductList
                   products={[product]}
                   onAddToCart={handleAddToCart}
+                  onToggleCartVisibility={toggleCartVisibility}
                 />
               </Grid>
             ))}
           </Grid>
         </Box>
 
-        <Box className="cart">
-          <Cart
-            cartItems={cartItems}
-            onCheckout={handleCheckout}
-            onRemoveFromCart={handleRemoveFromCart}
-            onIncreaseQuantity={handleIncreaseQuantity}
-            onDecreaseQuantity={handleDecreaseQuantity}
-            onUpdateQuantity={handleUpdateQuantity}
-          />
-        </Box>
+        {isCartVisible && (
+          <Box className="cart">
+            <Cart
+              cartItems={cartItems}
+              onCheckout={() => setCartItems([])}
+              onRemoveFromCart={(id) =>
+                setCartItems((prevItems) =>
+                  prevItems.filter((item) => item.id !== id)
+                )
+              }
+            />
+          </Box>
+        )}
       </Box>
+
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={toggleCartVisibility}
+        sx={{
+          position: "fixed",
+          bottom: "20px",
+          right: "20px",
+          borderRadius: "50%",
+          width: "60px",
+          height: "60px",
+          backgroundColor: "#345DA7",
+        }}
+      >
+        <Badge
+          badgeContent={cartQuantity}
+          color="error"
+          sx={{ fontSize: "14px" }}
+        >
+          <ShoppingCartIcon />
+        </Badge>
+      </Button>
     </Container>
   );
 };

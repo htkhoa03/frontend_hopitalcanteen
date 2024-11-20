@@ -1,7 +1,7 @@
-const dataUser = [
+export const dataUser = [
   {
-    username: "NVBH",
-    password: "NVBH",
+    username: "kt",
+    password: "kt",
     customerCode: "",
     name: "Nhan vien ban hang",
     phone: "0123456781",
@@ -30,19 +30,9 @@ const dataUser = [
     role: "Patient",
   },
 ];
-
-const checkLogin = (username, password, customerCode) => {
-  if (customerCode !== null) {
-    const user = dataUser.find((user) => user.customerCode === customerCode);
-    return user;
-  }
-  if (username && password) {
-    const user = dataUser.find(
-      (user) => user.username === username && user.password === password
-    );
-    return user;
-  }
-  return null;
+//data dashboard
+export const salesData = {
+  today: { productsSold: 120, ordersPlaced: 75 },
+  month: { productsSold: 1500, ordersPlaced: 800 },
+  year: { productsSold: 18000, ordersPlaced: 10000 },
 };
-
-export default checkLogin;
