@@ -34,7 +34,6 @@ const ProductList = ({ products, onAddToCart }) => {
             boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
             "&:hover": {
               transform: "translateY(-1px)",
-              // boxShadow: "0px 8px 20px rgba(0, 0, 0, 0.2)",
             },
             marginRight: "5px",
           }}
@@ -80,7 +79,7 @@ const ProductList = ({ products, onAddToCart }) => {
                 margin: "8px 0",
               }}
             >
-              Giá: {product.price.toLocaleString()}
+              Giá: {product.price.toLocaleString()} đ
             </Typography>
             <Button
               variant="contained"

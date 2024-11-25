@@ -12,6 +12,7 @@ import {
   DialogContent,
   DialogActions,
   Box,
+  Alert,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
@@ -25,10 +26,12 @@ const Cart = ({
   onIncreaseQuantity,
   onDecreaseQuantity,
   onUpdateQuantity,
+  patientBalance,
+  setPatientBalance,
 }) => {
   const [isDialogOpen, setDialogOpen] = useState(false);
+  const [isErrorDialogOpen, setErrorDialogOpen] = useState(false);
 
-  // Tính tổng tiền của giỏ hàng
   const totalPrice = cartItems.reduce(
     (total, item) => total + item.price * item.quantity,
     0
@@ -40,37 +43,63 @@ const Cart = ({
   };
 
   const handleCheckoutClick = () => {
+    if (patientBalance >= totalPrice) {
+      handleSuccessfulPayment();
+    } else {
+      setErrorDialogOpen(true);
+    }
+  };
+
+  const handleSuccessfulPayment = () => {
+    setPatientBalance((prevBalance) => prevBalance - totalPrice);
     onCheckout();
     setDialogOpen(true);
   };
 
   const handleCloseDialog = () => {
     setDialogOpen(false);
+    setErrorDialogOpen(false);
   };
 
   return (
-    <div>
+    <Box
+      sx={{
+        padding: "16px",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        overflowY: "auto",
+      }}
+    >
       <Typography variant="h5" gutterBottom align="center">
         Giỏ hàng của bạn
       </Typography>
-      <List sx={{ padding: "0" }}>
+      <List
+        sx={{
+          width: "100%",
+          maxWidth: "600px",
+          padding: "16px 0",
+        }}
+      >
         {cartItems.map((item) => (
           <ListItem
             key={item.id}
             sx={{
               display: "flex",
               alignItems: "center",
+              flexWrap: "wrap",
               borderBottom: "1px solid #e0e0e0",
               padding: "12px 0",
             }}
           >
-            <img
+            <Box
+              component="img"
               src={item.image}
               alt={item.name}
-              style={{
+              sx={{
                 width: 60,
                 height: 60,
-                marginRight: 16,
+                marginRight: 2,
                 borderRadius: "8px",
                 objectFit: "cover",
               }}
@@ -81,7 +110,7 @@ const Cart = ({
               sx={{
                 flex: 1,
                 marginBottom: 0,
-                paddingRight: "10px",
+                paddingRight: 1,
               }}
             />
             <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -95,8 +124,15 @@ const Cart = ({
                 type="number"
                 value={item.quantity}
                 onChange={(e) => handleQuantityChange(item.id, e.target.value)}
-                inputProps={{ min: 1, style: { textAlign: "center" } }}
-                sx={{ width: 60, margin: "0 8px", backgroundColor: "#f5f5f5" }}
+                inputProps={{
+                  min: 1,
+                  style: { textAlign: "center" },
+                }}
+                sx={{
+                  width: 60,
+                  mx: 1,
+                  backgroundColor: "#f5f5f5",
+                }}
               />
               <IconButton
                 color="primary"
@@ -108,7 +144,7 @@ const Cart = ({
             <IconButton
               color="error"
               onClick={() => onRemoveFromCart(item.id)}
-              sx={{ marginLeft: "10px" }}
+              sx={{ marginLeft: 1 }}
             >
               <DeleteOutlineIcon />
             </IconButton>
@@ -117,6 +153,8 @@ const Cart = ({
       </List>
       <Box
         sx={{
+          width: "100%",
+          maxWidth: "600px",
           display: "flex",
           justifyContent: "space-between",
           padding: "16px 0",
@@ -125,14 +163,13 @@ const Cart = ({
         }}
       >
         <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-          Tổng cộng: {totalPrice.toLocaleString()} VND
+          Tổng cộng: {totalPrice.toLocaleString()} đ
         </Typography>
         <Button
           variant="contained"
           color="primary"
           onClick={handleCheckoutClick}
           sx={{
-            padding: "10px 20px",
             textTransform: "none",
             fontWeight: "bold",
             borderRadius: "5px",
@@ -145,7 +182,7 @@ const Cart = ({
         </Button>
       </Box>
 
-      {/* Thanh toán thành công thông báo */}
+      {/* success payment */}
       <Dialog open={isDialogOpen} onClose={handleCloseDialog}>
         <DialogTitle>Thông báo</DialogTitle>
         <DialogContent>
@@ -169,7 +206,22 @@ const Cart = ({
           </Button>
         </DialogActions>
       </Dialog>
-    </div>
+
+      {/* error not enough money */}
+      <Dialog open={isErrorDialogOpen} onClose={handleCloseDialog}>
+        <DialogTitle>Cảnh báo</DialogTitle>
+        <DialogContent>
+          <Alert severity="error">
+            Số dư không đủ để thanh toán. Vui lòng kiểm tra lại giỏ hàng.
+          </Alert>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog} color="primary">
+            Đóng
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
   );
 };
 

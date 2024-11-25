@@ -7,22 +7,32 @@ import {
   Tab,
   Button,
   Box,
+  IconButton,
+  Menu,
+  MenuItem,
 } from "@mui/material";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import LanguageIcon from "@mui/icons-material/Language"; // Icon ngôn ngữ
+import useTranslation from "../hooks/useTranslation"; // Import custom hook
+import { setLanguage } from "../redux/languageSlice"; // Import action đổi ngôn ngữ
 import "./componentStyles/Header.css";
-import HomeIcon from "@mui/icons-material/Home";
 
 const Header = () => {
+  const t = useTranslation(); // Hook để lấy nội dung theo ngôn ngữ
   const [value, setValue] = useState(0);
   const location = useLocation();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
   const login = useSelector((state) => state.user.login);
   const username = useSelector((state) => state.user.username);
   const customerCode = useSelector((state) => state.user.customerCode);
-
   const displayName = username || customerCode;
 
+  const [anchorEl, setAnchorEl] = useState(null); // Quản lý trạng thái menu
+
+  // Xử lý giá trị tab theo đường dẫn
   useEffect(() => {
     switch (location.pathname) {
       case "/home":
@@ -47,8 +57,18 @@ const Header = () => {
     navigate("/user");
   };
 
+  // Xử lý hiển thị menu ngôn ngữ
+  const handleMenuClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = (lang) => {
+    dispatch(setLanguage(lang)); // Cập nhật ngôn ngữ trong Redux
+    setAnchorEl(null); // Đóng menu
+  };
+
   return (
-    <AppBar position="static" className="header-appbar">
+    <AppBar position="fixed" className="header-appbar">
       <Toolbar
         className="header-toolbar"
         style={{
@@ -65,10 +85,11 @@ const Header = () => {
             className="header-typography"
             style={{ marginLeft: "8px" }}
           >
-            Canteen Bệnh viện
+            {t.canteenTitle}
           </Typography>
         </Box>
 
+        {/* Tabs và thông tin người dùng */}
         <Box display="flex" alignItems="center">
           <Tabs
             value={value}
@@ -77,17 +98,12 @@ const Header = () => {
             indicatorColor="secondary"
             className="header-tabs"
           >
-            <Tab
-              component={Link}
-              to="/home"
-              icon={<HomeIcon />}
-              aria-label="home"
-            />
+            <Tab component={Link} to="/home" aria-label="home" label={t.home} />
           </Tabs>
           {login && (
             <Box display="flex" alignItems="center">
               <Typography variant="body1" style={{ marginRight: "8px" }}>
-                Hi,
+                {t.welcome},
               </Typography>
               <Button
                 color="inherit"
@@ -100,10 +116,25 @@ const Header = () => {
                   color: "gray",
                 }}
               >
-                {displayName ? displayName : "Đăng nhập"}{" "}
+                {displayName ? displayName : t.login}
               </Button>
             </Box>
           )}
+
+          {/* Nút chọn ngôn ngữ */}
+          <IconButton color="inherit" onClick={handleMenuClick}>
+            <LanguageIcon />
+          </IconButton>
+          <Menu
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={() => setAnchorEl(null)}
+          >
+            <MenuItem onClick={() => handleMenuClose("vi")}>
+              Tiếng Việt
+            </MenuItem>
+            <MenuItem onClick={() => handleMenuClose("en")}>English</MenuItem>
+          </Menu>
         </Box>
       </Toolbar>
     </AppBar>

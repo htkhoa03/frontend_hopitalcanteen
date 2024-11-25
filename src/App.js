@@ -9,11 +9,11 @@ import ForgotPassword from "./Pages/ForgotPassword";
 import ManagementHome from "./Pages/ManagementHome";
 import User from "./Pages/User";
 import Home from "./Pages/Home";
-import "../src/App.css";
 import StaffManagement from "./components/componentManagement/StaffManagement";
 import ProductManagement from "./components/componentManagement/ProductManagement";
-import AccoutManagement from "./components/componentManagement/AccoutManagement";
-import Dashboard from "./components/componentManagement/Dashboard";
+import AccountManagement from "./components/componentManagement/AccoutManagement";
+import OrdersManagement from "./components/componentManagement/OrdersManagement";
+import LayoutManagement from "./Pages/LayoutManagement";
 
 function App() {
   return (
@@ -22,22 +22,29 @@ function App() {
         <BrowserRouter>
           <Layout>
             <Routes>
+              {/* Public Routes */}
               <Route path="/" element={<Login />} />
               <Route path="/home" element={<Home />} />
-
               <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/management-home" element={<ManagementHome />} />
-              <Route path="/staff-management" element={<StaffManagement />} />
-              <Route
-                path="/product-management"
-                element={<ProductManagement />}
-              />
-              <Route
-                path="/account-management"
-                element={<AccoutManagement />}
-              />
-              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/user" element={<User />} />
+
+              {/* Management Routes */}
+              <Route path="/management" element={<LayoutManagement />}>
+                <Route path="management-home" element={<ManagementHome />} />
+                <Route path="staff-management" element={<StaffManagement />} />
+                <Route
+                  path="product-management"
+                  element={<ProductManagement />}
+                />
+                <Route
+                  path="account-management"
+                  element={<AccountManagement />}
+                />
+                <Route
+                  path="orders-management"
+                  element={<OrdersManagement />}
+                />
+              </Route>
             </Routes>
           </Layout>
         </BrowserRouter>

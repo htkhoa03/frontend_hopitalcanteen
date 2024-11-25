@@ -83,7 +83,7 @@ const Home = () => {
     ],
   };
 
-  const [selectedCategory, setSelectedCategory] = useState("Đồ ăn");
+  const [selectedCategory, setSelectedCategory] = useState("Tất cả");
   const [cartItems, setCartItems] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState("asc");
@@ -107,9 +107,20 @@ const Home = () => {
     });
   };
 
-  const filteredProducts = allProducts[selectedCategory].filter((product) =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Apply search term to all products
+  const allFilteredProducts = Object.values(allProducts)
+    .flat() // Flatten all product arrays into a single array
+    .filter((product) =>
+      product.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+  // Now you can filter based on category, but with the global search applied
+  const filteredProducts =
+    selectedCategory === "Tất cả" // If you choose "Tất cả" (All categories)
+      ? allFilteredProducts
+      : allProducts[selectedCategory].filter((product) =>
+          product.name.toLowerCase().includes(searchTerm.toLowerCase())
+        );
 
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     if (sortOrder === "asc") {
@@ -121,11 +132,12 @@ const Home = () => {
   const cartQuantity = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
   return (
-    <Container style={{ margin: 0, padding: 0, maxWidth: 2000 }}>
+    <Container style={{ marginTop: 50, padding: 0, maxWidth: 2000 }}>
       <Box className="menu-container">
         <Box className="category-list">
           <CategoryList
-            categories={categories}
+            categories={["Tất cả", ...categories]} // Added "Tất cả" for global search
+            selectedCategory={selectedCategory}
             onSelectCategory={(category) => setSelectedCategory(category)}
           />
         </Box>

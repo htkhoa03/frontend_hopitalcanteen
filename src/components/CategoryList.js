@@ -1,13 +1,14 @@
 import React from "react";
 import { List, ListItem, ListItemText, Typography } from "@mui/material";
 
-const CategoryList = ({ categories, onSelectCategory }) => {
+const CategoryList = ({ categories, selectedCategory, onSelectCategory }) => {
   return (
     <div
       style={{
-        padding: "10px",
+        padding: "50px 20px 0 0 ",
         backgroundColor: "white",
         borderRadius: "8px",
+        position: "fixed",
       }}
     >
       <Typography
@@ -33,10 +34,8 @@ const CategoryList = ({ categories, onSelectCategory }) => {
               "&:hover": {
                 backgroundColor: "#e3f2fd",
               },
-              "&.Mui-selected": {
-                backgroundColor: "#1976D2",
-                color: "white",
-              },
+              backgroundColor:
+                selectedCategory === category ? "#1976D2" : "transparent",
             }}
           >
             <ListItemText
@@ -45,7 +44,7 @@ const CategoryList = ({ categories, onSelectCategory }) => {
                 style: {
                   fontWeight: "bold",
                   fontSize: "15px",
-                  color: "#424242",
+                  color: selectedCategory === category ? "white" : "#424242",
                 },
               }}
             />

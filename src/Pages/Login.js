@@ -1,10 +1,9 @@
 import React, { useState } from "react";
-import { Typography, TextField, Button } from "@mui/material";
-import "./Styles/LoginStyles.css";
-import checkLogin from "../utils/checkLogin";
+import { Typography, TextField, Button, Box, Paper } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { loginWithUsername, loginWithCustomerCode } from "../redux/userSlice";
+import checkLogin from "../utils/checkLogin";
 import { dataUser } from "../utils/data";
 
 const Login = () => {
@@ -20,15 +19,13 @@ const Login = () => {
 
     if (username && password && customerCode) {
       setError(
-        "Vui lòng chỉ nhập Tên đăng nhập và Mật khẩu hoặc Mã bệnh nhân, không được nhập cả ba."
+        "Vui lòng chỉ nhập Tên đăng nhập và Mật khẩu hoặc Mã bệnh nhân."
       );
       return;
     }
 
     if (customerCode) {
-      // Handle with customerCode
       const user = checkLogin("", "", customerCode);
-
       if (user) {
         dispatch(
           loginWithCustomerCode({
@@ -36,16 +33,14 @@ const Login = () => {
             customerData: dataUser,
           })
         );
-
         navigate("/home", { replace: true });
       } else {
-        setError("Customer Code không chính xác");
+        setError("Mã bệnh nhân không chính xác.");
       }
       return;
     }
 
     if (username && password) {
-      // Handle with username and password
       const user = checkLogin(username, password, "");
       if (user) {
         dispatch(
@@ -58,66 +53,114 @@ const Login = () => {
             name: user.name,
           })
         );
-
-        navigate("/management-home", { replace: true });
+        navigate("/management/management-home", { replace: true });
       } else {
-        setError("Tên đăng nhập hoặc mật khẩu không chính xác");
+        setError("Tên đăng nhập hoặc mật khẩu không chính xác.");
       }
       return;
     }
 
-    setError("Vui lòng nhập thông tin đăng nhập hợp lệ");
+    setError("Vui lòng nhập thông tin đăng nhập hợp lệ.");
   };
 
   return (
-    <form onSubmit={handleSubmit} className="login-form">
-      <img src="../../logo.png" alt="Logo" className="logo" />
-      <Typography variant="h4" className="title">
-        Đăng nhập
-      </Typography>
-      <Typography variant="body1" className="label">
-        Tên đăng nhập
-      </Typography>
-      <TextField
-        label="Username"
-        value={username}
-        onChange={(event) => setUsername(event.target.value)}
-        className="input-field"
-      />
-      <Typography variant="body1" className="label">
-        Mật khẩu
-      </Typography>
-      <TextField
-        label="Password"
-        type="password"
-        value={password}
-        onChange={(event) => setPassword(event.target.value)}
-        className="input-field"
-        sx={{ marginBottom: "10px" }}
-      />
-      <Typography variant="body1" className="label">
-        Nếu bạn là bệnh nhân thì nhập mã bệnh nhân
-      </Typography>
-      <TextField
-        label="Customer Code"
-        value={customerCode}
-        onChange={(event) => setCustomerCode(event.target.value)}
-        className="input-field"
-      />
-      {error && (
-        <Typography
-          variant="body2"
-          sx={{ color: "red" }}
-          className="error-message"
-        >
-          {error}
-        </Typography>
-      )}
-      <br />
-      <Button type="submit" variant="contained" className="submit-button">
-        Đăng nhập
-      </Button>
-    </form>
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        height: "100vh",
+        backgroundColor: "#f0f0f0",
+      }}
+    >
+      <Paper
+        elevation={6}
+        sx={{
+          padding: 4,
+          width: { xs: "100%", sm: "400px" },
+          borderRadius: 3,
+        }}
+      >
+        <form onSubmit={handleSubmit}>
+          <Box sx={{ textAlign: "center", marginBottom: 3 }}>
+            <img
+              src="../../logo.png"
+              alt="Logo"
+              style={{
+                width: "120px",
+                marginBottom: "16px",
+                display: "block",
+                marginLeft: "auto",
+                marginRight: "auto",
+              }}
+            />
+            <Typography variant="h5" sx={{ fontWeight: "bold" }}>
+              Đăng nhập
+            </Typography>
+          </Box>
+
+          <TextField
+            label="Tên đăng nhập"
+            variant="outlined"
+            fullWidth
+            value={username}
+            onChange={(event) => setUsername(event.target.value)}
+            sx={{ marginBottom: 2 }}
+          />
+
+          <TextField
+            label="Mật khẩu"
+            variant="outlined"
+            type="password"
+            fullWidth
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            sx={{ marginBottom: 2 }}
+          />
+
+          <Typography
+            variant="body2"
+            color="textSecondary"
+            sx={{ marginBottom: 1 }}
+          >
+            Nếu bạn là bệnh nhân, vui lòng nhập mã bệnh nhân:
+          </Typography>
+
+          <TextField
+            label="Mã bệnh nhân"
+            variant="outlined"
+            fullWidth
+            value={customerCode}
+            onChange={(event) => setCustomerCode(event.target.value)}
+            sx={{ marginBottom: 2 }}
+          />
+
+          {error && (
+            <Typography
+              variant="body2"
+              color="error"
+              sx={{ textAlign: "center", marginBottom: 2 }}
+            >
+              {error}
+            </Typography>
+          )}
+
+          <Button
+            type="submit"
+            variant="contained"
+            fullWidth
+            sx={{
+              padding: "12px",
+              fontWeight: "bold",
+              textTransform: "none",
+              fontSize: "16px",
+            }}
+          >
+            Đăng nhập
+          </Button>
+        </form>
+      </Paper>
+    </Box>
   );
 };
 

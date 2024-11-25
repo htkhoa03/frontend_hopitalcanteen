@@ -2,22 +2,33 @@ import { configureStore } from "@reduxjs/toolkit";
 import userSlice from "./userSlice";
 import storage from "redux-persist/lib/storage";
 import { persistReducer, persistStore } from "redux-persist";
+import languageSlice from "./languageSlice";
 
-const persistConfig = {
+const userPersistConfig = {
   key: "user",
   storage,
-  whitelist: ["login"], // Chỉ lưu thuộc tính `login` của userSlice
+  whitelist: ["login"],
 };
 
-const persistedReducer = persistReducer(persistConfig, userSlice);
+const languagePersistConfig = {
+  key: "language",
+  storage,
+};
+
+const persistedUserReducer = persistReducer(userPersistConfig, userSlice);
+const persistedLanguageReducer = persistReducer(
+  languagePersistConfig,
+  languageSlice
+);
 
 export const store = configureStore({
   reducer: {
-    user: persistedReducer,
+    user: persistedUserReducer,
+    language: persistedLanguageReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
-      serializableCheck: false,
+      serializableCheck: false, // Bỏ qua kiểm tra serializable cho Redux Persist
     }),
 });
 

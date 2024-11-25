@@ -1,5 +1,7 @@
 .header-appbar {
   background-color: #64b5e3; 
+  position: fixed;
+  margin-bottom: 100px;
 }
 
 .header-toolbar {
