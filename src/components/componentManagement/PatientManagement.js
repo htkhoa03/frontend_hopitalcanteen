@@ -1,7 +1,7 @@
 import React from "react";
 import SideBar from "../SideBar";
 
-const StaffManagement = () => {
+const PatientManagement = () => {
   return (
     <div>
       <SideBar />
@@ -9,4 +9,4 @@ const StaffManagement = () => {
   );
 };
 
-export default StaffManagement;
+export default PatientManagement;

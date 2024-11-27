@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Routes, Route } from "react-router-dom";
 import ProductManagement from "../components/componentManagement/ProductManagement";
-import StaffManagement from "../components/componentManagement/StaffManagement";
-import AccountManagement from "../components/componentManagement/AccoutManagement";
+import EmployeeManagement from "../components/componentManagement/EmployeesManagement";
+import AccountManagement from "../components/componentManagement/PatientManagement";
 import OrdersManagement from "../components/componentManagement/OrdersManagement";
 import {
   Box,
@@ -24,12 +24,16 @@ const ManagementHome = () => {
   const [ordersPlaced, setOrdersPlaced] = useState(
     salesData.today.ordersPlaced
   );
+  const [totalRevenue, setTotalRevenue] = useState(
+    salesData.today.totalRevenue
+  );
 
   const handleTimeFrameChange = (event) => {
     const selectedTimeFrame = event.target.value;
     setTimeFrame(selectedTimeFrame);
     setProductsSold(salesData[selectedTimeFrame].productsSold);
     setOrdersPlaced(salesData[selectedTimeFrame].ordersPlaced);
+    setTotalRevenue(salesData[selectedTimeFrame].totalRevenue);
   };
 
   return (
@@ -42,8 +46,8 @@ const ManagementHome = () => {
           justifyContent: "space-between",
           alignItems: "center",
           marginBottom: 4,
-          maxWidth: "800px",
-          marginTop: "50px",
+          maxWidth: "700px",
+          marginTop: "100px",
         }}
       >
         <Typography variant="h4" sx={{ marginBottom: { xs: 2, sm: 0 } }}>
@@ -151,15 +155,73 @@ const ManagementHome = () => {
             </CardContent>
           </Card>
         </Grid>
+
+        <Grid item xs={12} sm={6}>
+          <Card
+            sx={{
+              backgroundColor: "#d1fae5",
+              boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",
+              borderRadius: "16px",
+            }}
+          >
+            <CardContent
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                flexDirection: { xs: "column", sm: "row" },
+              }}
+            >
+              <Box
+                sx={{
+                  backgroundColor: "#a7f3d0",
+                  padding: "16px",
+                  borderRadius: "50%",
+                  marginRight: { sm: "16px" },
+                  marginBottom: { xs: 2, sm: 0 },
+                }}
+              >
+                <Typography
+                  component="div"
+                  sx={{ fontSize: "2rem", color: "#10b981" }}
+                >
+                  💰
+                </Typography>
+              </Box>
+              <Box sx={{ textAlign: { xs: "center", sm: "left" } }}>
+                <Typography variant="h6" sx={{ color: "#16a34a" }}>
+                  Tổng tiền bán được
+                </Typography>
+                <Typography
+                  variant="h4"
+                  sx={{ fontWeight: "bold", color: "#16a34a" }}
+                >
+                  {totalRevenue.toLocaleString()} VNĐ
+                </Typography>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
       </Grid>
 
       {/* Routes */}
       <Box>
         <Routes>
-          <Route path="/product-management" element={<ProductManagement />} />
-          <Route path="/staff-management" element={<StaffManagement />} />
-          <Route path="/account-management" element={<AccountManagement />} />
-          <Route path="/orders-management" element={<OrdersManagement />} />
+          <Route
+            path="/management/product-management"
+            element={<ProductManagement />}
+          />
+          <Route
+            path="/management/employees-management"
+            element={<EmployeeManagement />}
+          />
+          <Route
+            path="/management/account-management"
+            element={<AccountManagement />}
+          />
+          <Route
+            path="/management/orders-management"
+            element={<OrdersManagement />}
+          />
         </Routes>
       </Box>
     </Box>

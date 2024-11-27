@@ -24,12 +24,12 @@ const SideBar = () => {
     {
       text: "Quản lý nhân viên",
       icon: <PeopleIcon />,
-      path: "/management/staff-management",
+      path: "/management/employees-management",
     },
     {
-      text: "Quản lý tài khoản",
+      text: "Quản lý bệnh nhân",
       icon: <AccountCircleIcon />,
-      path: "/management/account-management",
+      path: "/management/patient-management",
     },
     {
       text: "Quản lý đơn hàng",

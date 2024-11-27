@@ -9,11 +9,11 @@ import ForgotPassword from "./Pages/ForgotPassword";
 import ManagementHome from "./Pages/ManagementHome";
 import User from "./Pages/User";
 import Home from "./Pages/Home";
-import StaffManagement from "./components/componentManagement/StaffManagement";
 import ProductManagement from "./components/componentManagement/ProductManagement";
-import AccountManagement from "./components/componentManagement/AccoutManagement";
 import OrdersManagement from "./components/componentManagement/OrdersManagement";
 import LayoutManagement from "./Pages/LayoutManagement";
+import PatientManagement from "./components/componentManagement/PatientManagement";
+import EmployeeManagement from "./components/componentManagement/EmployeesManagement";
 
 function App() {
   return (
@@ -31,14 +31,17 @@ function App() {
               {/* Management Routes */}
               <Route path="/management" element={<LayoutManagement />}>
                 <Route path="management-home" element={<ManagementHome />} />
-                <Route path="staff-management" element={<StaffManagement />} />
+                <Route
+                  path="employees-management"
+                  element={<EmployeeManagement />}
+                />
                 <Route
                   path="product-management"
                   element={<ProductManagement />}
                 />
                 <Route
-                  path="account-management"
-                  element={<AccountManagement />}
+                  path="patient-management"
+                  element={<PatientManagement />}
                 />
                 <Route
                   path="orders-management"

@@ -32,16 +32,19 @@ const Cart = ({
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [isErrorDialogOpen, setErrorDialogOpen] = useState(false);
 
+  // Tính tổng tiền
   const totalPrice = cartItems.reduce(
     (total, item) => total + item.price * item.quantity,
     0
   );
 
+  // Xử lý cập nhật số lượng
   const handleQuantityChange = (id, value) => {
     const quantity = Math.max(1, parseInt(value, 10) || 1);
     onUpdateQuantity(id, quantity);
   };
 
+  // Xử lý thanh toán
   const handleCheckoutClick = () => {
     if (patientBalance >= totalPrice) {
       handleSuccessfulPayment();
@@ -74,13 +77,9 @@ const Cart = ({
       <Typography variant="h5" gutterBottom align="center">
         Giỏ hàng của bạn
       </Typography>
-      <List
-        sx={{
-          width: "100%",
-          maxWidth: "600px",
-          padding: "16px 0",
-        }}
-      >
+
+      {/* Danh sách sản phẩm */}
+      <List sx={{ width: "100%", maxWidth: "600px", padding: "16px 0" }}>
         {cartItems.map((item) => (
           <ListItem
             key={item.id}
@@ -126,12 +125,20 @@ const Cart = ({
                 onChange={(e) => handleQuantityChange(item.id, e.target.value)}
                 inputProps={{
                   min: 1,
-                  style: { textAlign: "center" },
+                  style: {
+                    textAlign: "center",
+                    appearance: "none",
+                  },
                 }}
                 sx={{
-                  width: 60,
-                  mx: 1,
+                  width: 50,
                   backgroundColor: "#f5f5f5",
+                  "& input[type=number]": {
+                    MozAppearance: "textfield",
+                  },
+                  "& .MuiOutlinedInput-input": {
+                    padding: "6px 6px",
+                  },
                 }}
               />
               <IconButton
@@ -151,6 +158,8 @@ const Cart = ({
           </ListItem>
         ))}
       </List>
+
+      {/* Tổng cộng và thanh toán */}
       <Box
         sx={{
           width: "100%",
@@ -182,7 +191,7 @@ const Cart = ({
         </Button>
       </Box>
 
-      {/* success payment */}
+      {/* Hộp thoại thanh toán thành công */}
       <Dialog open={isDialogOpen} onClose={handleCloseDialog}>
         <DialogTitle>Thông báo</DialogTitle>
         <DialogContent>
@@ -207,7 +216,7 @@ const Cart = ({
         </DialogActions>
       </Dialog>
 
-      {/* error not enough money */}
+      {/* Hộp thoại cảnh báo số dư không đủ */}
       <Dialog open={isErrorDialogOpen} onClose={handleCloseDialog}>
         <DialogTitle>Cảnh báo</DialogTitle>
         <DialogContent>
