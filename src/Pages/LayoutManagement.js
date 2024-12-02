@@ -12,7 +12,7 @@ const LayoutManagement = () => {
       <Box
         sx={{
           flexGrow: 1,
-          marginLeft: { md: "300px" }, // Reserve space for the sidebarSS
+          marginLeft: { md: "300px" },
         }}
       >
         <Outlet />

@@ -46,8 +46,9 @@ const ManagementHome = () => {
           justifyContent: "space-between",
           alignItems: "center",
           marginBottom: 4,
-          maxWidth: "700px",
+          maxWidth: "600px",
           marginTop: "100px",
+          left: 20,
         }}
       >
         <Typography variant="h4" sx={{ marginBottom: { xs: 2, sm: 0 } }}>
@@ -190,12 +191,12 @@ const ManagementHome = () => {
               <Box sx={{ textAlign: { xs: "center", sm: "left" } }}>
                 <Typography variant="h6" sx={{ color: "#16a34a" }}>
                   Tổng tiền bán được
-                </Typography>
+                </Typography>{" "}
                 <Typography
                   variant="h4"
                   sx={{ fontWeight: "bold", color: "#16a34a" }}
                 >
-                  {totalRevenue.toLocaleString()} VNĐ
+                  {totalRevenue.toLocaleString()} Đ
                 </Typography>
               </Box>
             </CardContent>

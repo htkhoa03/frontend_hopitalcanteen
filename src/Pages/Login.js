@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { loginWithUsername, loginWithCustomerCode } from "../redux/userSlice";
 import checkLogin from "../utils/checkLogin";
-import { dataUser } from "../utils/data";
+import { dataUser, employees } from "../utils/data";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -25,7 +25,7 @@ const Login = () => {
     }
 
     if (customerCode) {
-      const user = checkLogin("", "", customerCode);
+      const user = checkLogin(null, null, customerCode, dataUser);
       if (user) {
         dispatch(
           loginWithCustomerCode({
@@ -41,15 +41,17 @@ const Login = () => {
     }
 
     if (username && password) {
-      const user = checkLogin(username, password, "");
+      const user = checkLogin(username, password, null, employees);
+      console.log(user);
       if (user) {
         dispatch(
           loginWithUsername({
             username,
+            password,
+            employeeData: employees,
             role: user.role,
             phone: user.phone,
-            room: user.room,
-            balance: user.balance,
+            department: user.department,
             name: user.name,
           })
         );

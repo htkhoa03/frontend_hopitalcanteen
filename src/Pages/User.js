@@ -29,7 +29,7 @@ const User = () => {
   };
 
   const handleGoToManagement = () => {
-    navigate("/management-home");
+    navigate("/management/management-home");
   };
 
   return (
@@ -133,20 +133,34 @@ const User = () => {
                   </strong>{" "}
                   {user.phone}
                 </Typography>
-                <Typography variant="body1">
-                  <strong>
-                    {" "}
-                    <BedIcon /> Số phòng:
-                  </strong>{" "}
-                  {user.room}
-                </Typography>
-                <Typography variant="body1">
-                  <strong>
-                    {" "}
-                    <AttachMoneyIcon /> Số tiền:
-                  </strong>{" "}
-                  {user.balance.toLocaleString()} VND
-                </Typography>
+                {user.room && (
+                  <Typography variant="body1">
+                    <strong>
+                      {" "}
+                      <BedIcon /> Số phòng:
+                    </strong>{" "}
+                    {user.room}
+                  </Typography>
+                )}
+
+                {user.department && (
+                  <Typography variant="body1">
+                    <strong>
+                      {" "}
+                      <BedIcon /> Phòng ban:
+                    </strong>{" "}
+                    {user.department}
+                  </Typography>
+                )}
+                {user.balance && (
+                  <Typography variant="body1">
+                    <strong>
+                      {" "}
+                      <AttachMoneyIcon /> Số tiền:
+                    </strong>{" "}
+                    {user.balance.toLocaleString()} Đ
+                  </Typography>
+                )}
               </Stack>
             </Paper>
 

@@ -1,46 +1,12 @@
 import { createSlice } from "@reduxjs/toolkit";
-
-// Sample customer data
-// const customerData = [
-//   {
-//     customerCode: "C001",
-//     name: "Nguyen Thi B",
-//     phone: "0123456781",
-//     room: "B301",
-//     balance: "2,000,000",
-//     role: "Patient",
-//   },
-//   {
-//     customerCode: "C002",
-//     name: "Tran Thi C",
-//     phone: "0123456782",
-//     room: "B302",
-//     balance: "1,500,000",
-//     role: "Patient",
-//   },
-//   {
-//     customerCode: "",
-//     name: "Nguyễn Văn A",
-//     phone: "0123456781",
-//     room: "A301",
-//     balance: "2,000,000",
-//     role: "Admin",
-//   },
-//   {
-//     customerCode: "67890",
-//     name: "Tien",
-//     phone: "0123456781",
-//     room: "B312321301",
-//     balance: "2,000,000",
-//     role: "Patient",
-//   },
-// ];
+import { dataUser, employees } from "../utils/data";
 
 const initialState = {
   login: false,
   username: null,
   role: null,
   phone: null,
+  department: null,
   room: null,
   balance: null,
   customerCode: null,
@@ -52,22 +18,32 @@ const userSlice = createSlice({
   initialState,
   reducers: {
     loginWithUsername: (state, action) => {
-      const { username, phone, room, balance, role, name } = action.payload;
-      Object.assign(state, {
-        login: true,
-        username,
-        phone,
-        room,
-        balance,
-        role,
-        name,
-        customerCode: null,
-      });
+      const { username, password } = action.payload;
+      const user = employees.find(
+        (emp) => emp.username === username && emp.password === password
+      );
+
+      if (user) {
+        Object.assign(state, {
+          login: true,
+          username: user.username,
+          role: user.role,
+          phone: user.phone,
+          department: user.department,
+          name: user.name,
+          room: null,
+          balance: null,
+          customerCode: null,
+        });
+      } else {
+        console.error("Invalid username or password.");
+        state.login = false;
+      }
     },
 
     loginWithCustomerCode: (state, action) => {
-      const { customerCode, customerData } = action.payload;
-      const customer = customerData.find(
+      const { customerCode } = action.payload;
+      const customer = dataUser.find(
         (cust) => cust.customerCode === customerCode
       );
 
@@ -75,16 +51,16 @@ const userSlice = createSlice({
         Object.assign(state, {
           login: true,
           customerCode: customer.customerCode,
+          role: null,
           phone: customer.phone,
           room: customer.room,
           balance: customer.balance,
           name: customer.name,
-          role: customer.role,
-          username: null, // Clear username when logging in with customerCode
+          username: null,
         });
       } else {
         console.error("Customer code not found");
-        state.login = false; // Ensure login is false if no customer matches
+        state.login = false;
       }
     },
 
@@ -106,16 +82,6 @@ const userSlice = createSlice({
 export const { loginWithUsername, loginWithCustomerCode, logout } =
   userSlice.actions;
 
-// Selector to retrieve the entire user state
-export const selectUser = (state) => ({
-  login: state.user.login,
-  username: state.user.username,
-  role: state.user.role,
-  phone: state.user.phone,
-  room: state.user.room,
-  balance: state.user.balance,
-  customerCode: state.user.customerCode,
-  name: state.user.name,
-});
+export const selectUser = (state) => state.user;
 
 export default userSlice.reducer;

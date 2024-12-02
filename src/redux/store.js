@@ -7,7 +7,7 @@ import languageSlice from "./languageSlice";
 const userPersistConfig = {
   key: "user",
   storage,
-  whitelist: ["login"],
+  whitelist: ["login", "username", "user"],
 };
 
 const languagePersistConfig = {
@@ -28,7 +28,7 @@ export const store = configureStore({
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
-      serializableCheck: false, // Bỏ qua kiểm tra serializable cho Redux Persist
+      serializableCheck: false,
     }),
 });
 
