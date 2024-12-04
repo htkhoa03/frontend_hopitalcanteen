@@ -9,18 +9,37 @@ import {
   Box,
 } from "@mui/material";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import axios from "../axios/axios"; // Kết nối đến backend API
 import "./componentStyles/Header.css";
 
 const Header = () => {
   const [value, setValue] = useState(0);
+  const [displayName, setDisplayName] = useState(null);
+  const [login, setLogin] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
-  const login = useSelector((state) => state.user.login);
-  const username = useSelector((state) => state.user.username);
-  const customerCode = useSelector((state) => state.user.customerCode);
-  const displayName = username || customerCode;
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const token = localStorage.getItem("accessToken");
+        if (token) {
+          const res = await axios.get("/login", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const { username, cardNumber } = res.data;
+          setDisplayName(username || cardNumber);
+          setLogin(true);
+        }
+      } catch (error) {
+        console.error("Không thể lấy thông tin người dùng:", error);
+        setLogin(false);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
   useEffect(() => {
     switch (location.pathname) {
       case "/home":
@@ -29,20 +48,17 @@ const Header = () => {
       case "/user":
         setValue(1);
         break;
-      case "/management-home":
-        setValue(2);
-        break;
       default:
         setValue(0);
     }
   }, [location.pathname]);
 
-  const handleChange = (event, newValue) => {
-    setValue(newValue);
-  };
-
   const handleAccountClick = () => {
     navigate("/user");
+  };
+
+  const handleLoginClick = () => {
+    navigate("/");
   };
 
   return (
@@ -67,11 +83,10 @@ const Header = () => {
           </Typography>
         </Box>
 
-        {/* Tabs và thông tin người dùng */}
         <Box display="flex" alignItems="center">
           <Tabs
             value={value}
-            onChange={handleChange}
+            onChange={(event, newValue) => setValue(newValue)}
             textColor="inherit"
             indicatorColor="secondary"
             className="header-tabs"
@@ -83,7 +98,7 @@ const Header = () => {
               label="Trang chủ"
             />
           </Tabs>
-          {login && (
+          {login ? (
             <Box display="flex" alignItems="center">
               <Typography variant="body1" style={{ marginRight: "8px" }}>
                 Xin chào,
@@ -99,9 +114,23 @@ const Header = () => {
                   color: "gray",
                 }}
               >
-                {displayName ? displayName : "Đăng nhập"}
+                {displayName}
               </Button>
             </Box>
+          ) : (
+            <Button
+              color="inherit"
+              className="header-login-btn"
+              variant="contained"
+              onClick={handleLoginClick}
+              sx={{
+                backgroundColor: "white",
+                height: "30px",
+                color: "gray",
+              }}
+            >
+              Đăng nhập
+            </Button>
           )}
         </Box>
       </Toolbar>

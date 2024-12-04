@@ -1,68 +1,46 @@
 import React, { useState } from "react";
 import { Typography, TextField, Button, Box, Paper } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
-import { loginWithUsername, loginWithCustomerCode } from "../redux/userSlice";
-import checkLogin from "../utils/checkLogin";
-import { dataUser, employees } from "../utils/data";
+import { handleLogin } from "../axios/loginService";
 
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [customerCode, setCustomerCode] = useState("");
+  const [cardNumber, setCardNumber] = useState("");
   const [error, setError] = useState(null);
   const navigate = useNavigate();
-  const dispatch = useDispatch();
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
-    if (username && password && customerCode) {
-      setError(
-        "Vui lòng chỉ nhập Tên đăng nhập và Mật khẩu hoặc Mã bệnh nhân."
-      );
+    if (
+      (username && password && cardNumber) ||
+      (!username && !password && !cardNumber)
+    ) {
+      setError("Vui lòng chỉ nhập Tên đăng nhập & Mật khẩu hoặc Mã bệnh nhân.");
       return;
     }
 
-    if (customerCode) {
-      const user = checkLogin(null, null, customerCode, dataUser);
-      if (user) {
-        dispatch(
-          loginWithCustomerCode({
-            customerCode,
-            customerData: dataUser,
-          })
-        );
+    try {
+      let res;
+      if (cardNumber) {
+        res = await handleLogin({ cardNumber });
+        const { accessToken } = res.data;
+        localStorage.setItem("accessToken", accessToken);
         navigate("/home", { replace: true });
       } else {
-        setError("Mã bệnh nhân không chính xác.");
-      }
-      return;
-    }
-
-    if (username && password) {
-      const user = checkLogin(username, password, null, employees);
-      console.log(user);
-      if (user) {
-        dispatch(
-          loginWithUsername({
-            username,
-            password,
-            employeeData: employees,
-            role: user.role,
-            phone: user.phone,
-            department: user.department,
-            name: user.name,
-          })
-        );
+        res = await handleLogin({ username, password });
+        const { accessToken } = res.data;
+        localStorage.setItem("accessToken", accessToken);
         navigate("/management/management-home", { replace: true });
-      } else {
-        setError("Tên đăng nhập hoặc mật khẩu không chính xác.");
       }
-      return;
+    } catch (error) {
+      if (error.response && error.response.data.message) {
+        setError(error.response.data.message);
+      } else {
+        setError("Đăng nhập thất bại. Vui lòng thử lại.");
+      }
     }
-
-    setError("Vui lòng nhập thông tin đăng nhập hợp lệ.");
   };
 
   return (
@@ -132,8 +110,8 @@ const Login = () => {
             label="Mã bệnh nhân"
             variant="outlined"
             fullWidth
-            value={customerCode}
-            onChange={(event) => setCustomerCode(event.target.value)}
+            value={cardNumber}
+            onChange={(event) => setCardNumber(event.target.value)}
             sx={{ marginBottom: 2 }}
           />
 
