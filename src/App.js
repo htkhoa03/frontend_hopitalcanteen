@@ -15,6 +15,7 @@ import PatientManagement from "./components/componentManagement/PatientManagemen
 import EmployeeManagement from "./components/componentManagement/EmployeesManagement";
 import AccountingManagement from "./components/componentManagement/AccountingManagement";
 import Patient from "./Pages/Patient";
+import CategoryManagament from "./components/componentManagement/CategoryManagament";
 
 function App() {
   return (
@@ -51,6 +52,10 @@ function App() {
                 <Route
                   path="accounting-management"
                   element={<AccountingManagement />}
+                />
+                <Route
+                  path="category-management"
+                  element={<CategoryManagament />}
                 />
               </Route>
             </Routes>

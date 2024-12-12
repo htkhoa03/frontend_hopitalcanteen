@@ -15,8 +15,8 @@ import {
   Badge,
 } from "@mui/material";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import { categories } from "../utils/data";
 import { getAllProductsService } from "../axios/productService";
+import { getAllCategoriesService } from "../axios/categoryService";
 
 const Home = () => {
   const [selectedCategory, setSelectedCategory] = useState("Tất cả");
@@ -25,12 +25,38 @@ const Home = () => {
   const [sortOrder, setSortOrder] = useState("asc");
   const [isCartVisible, setIsCartVisible] = useState(false);
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState(["Tất cả"]); // Danh mục mặc định
 
-  // Toggle visibility of Cart
+  // Lấy danh mục từ backend
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const fetchedCategories = await getAllCategoriesService();
+        setCategories(["Tất cả", ...fetchedCategories.map((cat) => cat.name)]);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  // Lấy sản phẩm từ backend
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await getAllProductsService();
+        setProducts(res.data.data);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  // Các hàm logic khác
   const toggleCartVisibility = () => setIsCartVisible((prev) => !prev);
 
-  // Add product to cart
-  const handleAddToCart = (product) => {
+  const handleAddToCart = (product) =>
     setCartItems((prevItems) => {
       const existingItem = prevItems.find((item) => item.id === product.id);
       if (existingItem) {
@@ -42,42 +68,23 @@ const Home = () => {
       }
       return [...prevItems, { ...product, quantity: 1 }];
     });
-  };
 
-  // Filter products based on category and search term
   const filteredProducts =
     selectedCategory === "Tất cả"
       ? products.filter((product) =>
-          product.productName.toLowerCase().includes(searchTerm.toLowerCase())
+          product.name?.toLowerCase().includes(searchTerm.toLowerCase())
         )
       : products.filter(
           (product) =>
             product.category === selectedCategory &&
-            product.productName.toLowerCase().includes(searchTerm.toLowerCase())
+            product.name?.toLowerCase().includes(searchTerm.toLowerCase())
         );
 
-  // Sort products by price
   const sortedProducts = [...filteredProducts].sort((a, b) => {
-    return sortOrder === "asc"
-      ? a.sellPrice - b.sellPrice
-      : b.sellPrice - a.sellPrice;
+    return sortOrder === "asc" ? a.price - b.price : b.price - a.price;
   });
 
-  // Calculate total items in the cart
   const cartQuantity = cartItems.reduce((acc, item) => acc + item.quantity, 0);
-
-  // Fetch products on component mount
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const res = await getAllProductsService();
-        setProducts(res.data);
-      } catch (error) {
-        console.error("Error fetching products:", error);
-      }
-    };
-    fetchProducts();
-  }, []);
 
   return (
     <Container style={{ marginTop: 50, padding: 0, maxWidth: 2000 }}>
@@ -85,7 +92,7 @@ const Home = () => {
         {/* Category and Filter */}
         <Box className="category-list">
           <CategoryList
-            categories={["Tất cả", ...categories]}
+            categories={categories}
             selectedCategory={selectedCategory}
             onSelectCategory={setSelectedCategory}
           />
@@ -118,7 +125,7 @@ const Home = () => {
 
           <Grid container spacing={3}>
             {sortedProducts.map((product) => (
-              <Grid item xs={12} sm={6} md={4} lg={3} key={product.productId}>
+              <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
                 <Products product={product} onAddToCart={handleAddToCart} />
               </Grid>
             ))}
@@ -131,37 +138,7 @@ const Home = () => {
             <Cart
               cartItems={cartItems}
               onCheckout={() => setCartItems([])}
-              onDecreaseQuantity={(id) =>
-                setCartItems((prevItems) =>
-                  prevItems.map((item) =>
-                    item.id === id && item.quantity > 1
-                      ? { ...item, quantity: item.quantity - 1 }
-                      : item
-                  )
-                )
-              }
-              onIncreaseQuantity={(id) =>
-                setCartItems((prevItems) =>
-                  prevItems.map((item) =>
-                    item.id === id
-                      ? { ...item, quantity: item.quantity + 1 }
-                      : item
-                  )
-                )
-              }
-              onRemoveFromCart={(id) =>
-                setCartItems((prevItems) =>
-                  prevItems.filter((item) => item.id !== id)
-                )
-              }
-              onUpdateQuantity={(id, quantity) => {
-                const newQuantity = Math.max(1, parseInt(quantity, 10) || 1);
-                setCartItems((prevItems) =>
-                  prevItems.map((item) =>
-                    item.id === id ? { ...item, quantity: newQuantity } : item
-                  )
-                );
-              }}
+              // Các hàm xử lý trong giỏ hàng
             />
           </Box>
         )}

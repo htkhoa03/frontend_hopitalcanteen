@@ -13,6 +13,14 @@ import {
   Paper,
   TextField,
   Dialog,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
+  Snackbar,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
 } from "@mui/material";
 import { Edit, Delete, Add, Download } from "@mui/icons-material";
 import * as XLSX from "xlsx";
@@ -23,7 +31,7 @@ import Search from "../Search";
 const ProductManagement = () => {
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredProducts, setFilteredProducts] = useState([]); // Dữ liệu lọc
+  const [filteredProducts, setFilteredProducts] = useState([]);
   const [editProduct, setEditProduct] = useState(null);
   const [deleteProductId, setDeleteProductId] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -32,31 +40,41 @@ const ProductManagement = () => {
   const [newProduct, setNewProduct] = useState({
     name: "",
     price: "",
-    stock: 0,
+    unit: 0,
+    category: "",
+    images: [],
   });
+  const [categories, setCategories] = useState([]);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
 
-  // Fetch products
+  // Fetch products and categories
   const fetchProducts = async () => {
     try {
       const res = await getAllProductsService();
-      const data = res.data.map((product) => ({
-        productId: product.productId,
-        name: product.productName,
-        price: product.sellPrice,
-        stock: product.unit,
-      }));
+      const data = res.data.data;
       setProducts(data);
     } catch (error) {
       console.error("Error fetching products:", error);
     }
   };
 
+  const fetchCategories = async () => {
+    // Giả sử bạn có API để lấy danh mục
+    try {
+      const res = await axios.get("/categories");
+      setCategories(res.data.data);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
+
   useEffect(() => {
     fetchProducts();
+    fetchCategories();
   }, []);
 
   useEffect(() => {
-    // Lọc sản phẩm dựa trên từ khóa tìm kiếm
     const lowercasedSearch = searchTerm.toLowerCase();
     const filtered = products.filter(
       (product) =>
@@ -66,59 +84,61 @@ const ProductManagement = () => {
     setFilteredProducts(filtered);
   }, [searchTerm, products]);
 
-  // Update product
-  const handleUpdateProduct = async () => {
-    try {
-      const token = localStorage.getItem("accessToken");
-      await axios.put(
-        `/products/${editProduct.productId}`,
-        {
-          productName: editProduct.name,
-          sellPrice: editProduct.price,
-          unit: editProduct.stock,
-          status: true,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      fetchProducts();
-      setIsEditModalOpen(false);
-    } catch (error) {
-      console.error("Failed to update product:", error);
-    }
-  };
-
-  // Add new product
+  // Handle Add product
   const handleAddProduct = async () => {
+    const formData = new FormData();
+    formData.append("name", newProduct.name);
+    formData.append("price", newProduct.price);
+    formData.append("unit", newProduct.unit);
+    formData.append("category", newProduct.category);
+    newProduct.images.forEach((image) => formData.append("files", image));
+
     try {
-      await axios.post("/products", {
-        productName: newProduct.name,
-        sellPrice: newProduct.price,
-        unit: newProduct.stock,
-        status: true,
-      });
+      await axios.post("/products", formData);
       fetchProducts();
       setIsAddModalOpen(false);
-      setNewProduct({ name: "", price: "", stock: 0 });
+      setNewProduct({
+        name: "",
+        price: "",
+        unit: 0,
+        category: [],
+        images: [],
+      });
+      setSnackbarMessage("Sản phẩm đã được thêm thành công!");
+      setOpenSnackbar(true);
     } catch (error) {
       console.error("Failed to add product:", error);
     }
   };
 
-  // Delete product
+  // Handle Update product
+  const handleUpdateProduct = async () => {
+    const formData = new FormData();
+    formData.append("name", editProduct.name);
+    formData.append("price", editProduct.price);
+    formData.append("unit", editProduct.unit);
+    formData.append("category", editProduct.category.name);
+    editProduct.images.forEach((image) => formData.append("files", image));
+
+    try {
+      await axios.put(`/products/${editProduct.id}`, formData);
+      fetchProducts();
+      setIsEditModalOpen(false);
+      setSnackbarMessage("Sản phẩm đã được cập nhật thành công!");
+      setOpenSnackbar(true);
+    } catch (error) {
+      console.error("Failed to update product:", error);
+    }
+  };
+
+  // Handle delete product
   const handleConfirmDelete = async () => {
     try {
-      const token = localStorage.getItem("accessToken");
-      await axios.delete(`/products/${deleteProductId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await axios.delete(`/products/${deleteProductId}`);
       fetchProducts();
       setIsDeleteModalOpen(false);
+      setSnackbarMessage("Sản phẩm đã được xóa!");
+      setOpenSnackbar(true);
     } catch (error) {
       console.error("Failed to delete product:", error);
     }
@@ -129,7 +149,8 @@ const ProductManagement = () => {
     const data = products.map((product) => ({
       "Tên sản phẩm": product.name,
       Giá: product.price,
-      "Số lượng tồn": product.stock,
+      "Số lượng tồn": product.unit,
+      "Danh mục": product.category.name,
     }));
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
@@ -167,7 +188,6 @@ const ProductManagement = () => {
         }}
       >
         <Box sx={{ flex: 1, maxWidth: "400px" }}>
-          {" "}
           <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         </Box>
 
@@ -213,15 +233,30 @@ const ProductManagement = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {products.map((product) => (
-              <TableRow key={product.productId}>
-                <TableCell align="center">{product.name}</TableCell>
+            {filteredProducts.map((product) => (
+              <TableRow key={product.id}>
                 <TableCell align="center">{product.name}</TableCell>
                 <TableCell align="center">
-                  {product.price?.toLocaleString() ?? "N/A"} Đ
+                  <img
+                    src={`http://localhost:8080${
+                      product.images.length > 0
+                        ? product.images[0].downloadUrl
+                        : "/images/default-placeholder.png"
+                    }`}
+                    alt={product.name}
+                    style={{
+                      width: "90px",
+                      height: "90px",
+                      objectFit: "cover",
+                      borderRadius: "5px",
+                    }}
+                  />
                 </TableCell>
-                <TableCell align="center">{product.stock ?? "N/A"}</TableCell>
-                <TableCell align="center">{product.name}</TableCell>
+                <TableCell align="center">
+                  {product.price?.toLocaleString()} Đ
+                </TableCell>
+                <TableCell align="center">{product.unit}</TableCell>
+                <TableCell align="center">{product.category.name}</TableCell>
                 <TableCell align="center">
                   <IconButton
                     color="primary"
@@ -235,7 +270,7 @@ const ProductManagement = () => {
                   <IconButton
                     color="error"
                     onClick={() => {
-                      setDeleteProductId(product.productId);
+                      setDeleteProductId(product.id);
                       setIsDeleteModalOpen(true);
                     }}
                   >
@@ -247,6 +282,14 @@ const ProductManagement = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      {/* Snackbar thông báo */}
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={3000}
+        onClose={() => setOpenSnackbar(false)}
+        message={snackbarMessage}
+      />
 
       {/* Modal thêm sản phẩm */}
       <Dialog open={isAddModalOpen} onClose={() => setIsAddModalOpen(false)}>
@@ -277,19 +320,29 @@ const ProductManagement = () => {
             label="Số lượng tồn"
             fullWidth
             type="number"
-            value={newProduct.stock}
+            value={newProduct.unit}
             onChange={(e) =>
-              setNewProduct({ ...newProduct, stock: e.target.value })
+              setNewProduct({ ...newProduct, unit: e.target.value })
             }
             margin="normal"
           />
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleAddProduct}
-            sx={{ marginTop: 2 }}
-          >
-            Thêm
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Danh mục</InputLabel>
+            <Select
+              value={newProduct.category}
+              onChange={(e) =>
+                setNewProduct({ ...newProduct, category: e.target.value })
+              }
+            >
+              {categories.map((category) => (
+                <MenuItem key={category.id} value={category.name}>
+                  {category.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <Button variant="contained" onClick={handleAddProduct}>
+            Thêm sản phẩm
           </Button>
         </Box>
       </Dialog>
@@ -323,18 +376,28 @@ const ProductManagement = () => {
             label="Số lượng tồn"
             fullWidth
             type="number"
-            value={editProduct?.stock || ""}
+            value={editProduct?.unit || ""}
             onChange={(e) =>
-              setEditProduct({ ...editProduct, stock: e.target.value })
+              setEditProduct({ ...editProduct, unit: e.target.value })
             }
             margin="normal"
           />
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleUpdateProduct}
-            sx={{ marginTop: 2 }}
-          >
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Danh mục</InputLabel>
+            <Select
+              value={editProduct?.category || ""}
+              onChange={(e) =>
+                setEditProduct({ ...editProduct, category: e.target.value })
+              }
+            >
+              {categories.map((category) => (
+                <MenuItem key={category.id} value={category.name}>
+                  {category.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <Button variant="contained" onClick={handleUpdateProduct}>
             Lưu thay đổi
           </Button>
         </Box>
@@ -345,27 +408,22 @@ const ProductManagement = () => {
         open={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
       >
-        <Box sx={{ padding: 3 }}>
+        <DialogTitle>Xác nhận xóa</DialogTitle>
+        <DialogContent>
           <Typography>Bạn có chắc chắn muốn xóa sản phẩm này?</Typography>
-          <Box
-            sx={{ display: "flex", justifyContent: "flex-end", marginTop: 2 }}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setIsDeleteModalOpen(false)} color="primary">
+            Hủy
+          </Button>
+          <Button
+            onClick={handleConfirmDelete}
+            color="error"
+            variant="contained"
           >
-            <Button
-              variant="contained"
-              color="error"
-              onClick={handleConfirmDelete}
-              sx={{ marginRight: 2 }}
-            >
-              Xóa
-            </Button>
-            <Button
-              variant="outlined"
-              onClick={() => setIsDeleteModalOpen(false)}
-            >
-              Hủy
-            </Button>
-          </Box>
-        </Box>
+            Xóa
+          </Button>
+        </DialogActions>
       </Dialog>
     </Box>
   );

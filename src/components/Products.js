@@ -29,8 +29,10 @@ const Product = ({ product, onAddToCart }) => {
       <Box
         sx={{
           height: "170px",
-          backgroundImage: `url(${
-            product.imageUrl || "https://via.placeholder.com/150"
+          backgroundImage: `url(http://localhost:8080${
+            product.images.length > 0
+              ? product.images[0].downloadUrl
+              : "/images/default-placeholder.png"
           })`,
           backgroundSize: "cover",
           backgroundPosition: "center",
@@ -47,14 +49,14 @@ const Product = ({ product, onAddToCart }) => {
           sx={{ fontWeight: "bold" }}
           gutterBottom
         >
-          {product.productName}
+          {product.name}
         </Typography>
         <Typography
           variant="body2"
           color="text.secondary"
           sx={{ marginBottom: "8px" }}
         >
-          Giá: {product.sellPrice} đ
+          Giá: {product.price} đ
         </Typography>
         <Typography variant="body2" color="text.secondary">
           Số lượng: {product.unit}
