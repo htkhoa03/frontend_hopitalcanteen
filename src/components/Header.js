@@ -9,52 +9,73 @@ import {
   Box,
 } from "@mui/material";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import axios from "../axios/axios"; // Kết nối đến backend API
+import axios from "../axios/axios";
 import "./componentStyles/Header.css";
 
 const Header = () => {
-  const [value, setValue] = useState(0);
   const [displayName, setDisplayName] = useState(null);
   const [login, setLogin] = useState(false);
+  const [loading, setLoading] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
+
+  const tabValue = (() => {
+    if (displayName?.startsWith("BN-")) {
+      return location.pathname === "/home" ? 0 : false;
+    }
+    return location.pathname === "/management/management-home" ? 0 : false;
+  })();
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         const token = localStorage.getItem("accessToken");
         if (token) {
-          const res = await axios.get("/login", {
+          // Decode token hoặc gọi API để lấy vai trò người dùng
+          const roleResponse = await axios.get("/auth/role", {
             headers: { Authorization: `Bearer ${token}` },
           });
+          const { role } = roleResponse.data;
+
+          let res;
+          if (role === "PATIENT") {
+            res = await axios.get("/patients/myinfo", {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+          } else if (role === "USER") {
+            res = await axios.get("/myinfo", {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+          } else {
+            throw new Error("Role không hợp lệ");
+          }
+
+          // Xử lý dữ liệu người dùng
           const { username, cardNumber } = res.data;
-          setDisplayName(username || cardNumber);
+          if (username) {
+            setDisplayName(username);
+          } else if (cardNumber) {
+            setDisplayName(`BN-${cardNumber}`);
+          }
           setLogin(true);
         }
       } catch (error) {
         console.error("Không thể lấy thông tin người dùng:", error);
         setLogin(false);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchUserData();
   }, []);
 
-  useEffect(() => {
-    switch (location.pathname) {
-      case "/home":
-        setValue(0);
-        break;
-      case "/user":
-        setValue(1);
-        break;
-      default:
-        setValue(0);
-    }
-  }, [location.pathname]);
-
   const handleAccountClick = () => {
-    navigate("/user");
+    if (displayName?.startsWith("BN-")) {
+      navigate("/patient");
+    } else {
+      navigate("/user");
+    }
   };
 
   const handleLoginClick = () => {
@@ -85,23 +106,37 @@ const Header = () => {
 
         <Box display="flex" alignItems="center">
           <Tabs
-            value={value}
-            onChange={(event, newValue) => setValue(newValue)}
+            value={tabValue}
             textColor="inherit"
             indicatorColor="secondary"
             className="header-tabs"
           >
-            <Tab
-              component={Link}
-              to="/home"
-              aria-label="home"
-              label="Trang chủ"
-            />
+            {displayName?.startsWith("BN-") ? (
+              <Tab
+                component={Link}
+                to="/home"
+                aria-label="home"
+                label="Trang chủ"
+              />
+            ) : (
+              <Tab
+                component={Link}
+                to="/management/management-home"
+                aria-label="management"
+                label="Quản lý"
+              />
+            )}
           </Tabs>
-          {login ? (
+          {loading ? (
+            <Typography variant="body2" style={{ marginLeft: "16px" }}>
+              Đang tải...
+            </Typography>
+          ) : login ? (
             <Box display="flex" alignItems="center">
               <Typography variant="body1" style={{ marginRight: "8px" }}>
-                Xin chào,
+                {displayName.startsWith("BN-")
+                  ? "Xin chào, Bệnh nhân"
+                  : "Xin chào,"}
               </Typography>
               <Button
                 color="inherit"

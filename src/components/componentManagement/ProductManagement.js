@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -12,44 +12,122 @@ import {
   IconButton,
   Paper,
   TextField,
-  Select,
-  MenuItem,
-  FormControl,
+  Dialog,
 } from "@mui/material";
-import { Edit, Delete, Download } from "@mui/icons-material";
-import { allProducts, categories } from "../../utils/data";
+import { Edit, Delete, Add, Download } from "@mui/icons-material";
 import * as XLSX from "xlsx";
+import { getAllProductsService } from "../../axios/productService";
+import axios from "../../axios/axios";
+import Search from "../Search";
 
 const ProductManagement = () => {
+  const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("Tất cả");
-  const [stockStatus, setStockStatus] = useState("Tất cả");
-
-  const products = Object.entries(allProducts).flatMap(([category, items]) =>
-    items.map((product) => ({
-      ...product,
-      category,
-    }))
-  );
-
-  const filteredProducts = products.filter((product) => {
-    const matchesSearchTerm = product.name
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    const matchesCategory =
-      selectedCategory === "Tất cả" || product.category === selectedCategory;
-    const matchesStockStatus =
-      stockStatus === "Tất cả" ||
-      (stockStatus === "Còn hàng" && product.stock > 0) ||
-      (stockStatus === "Hết hàng" && product.stock === 0);
-
-    return matchesSearchTerm && matchesCategory && matchesStockStatus;
+  const [filteredProducts, setFilteredProducts] = useState([]); // Dữ liệu lọc
+  const [editProduct, setEditProduct] = useState(null);
+  const [deleteProductId, setDeleteProductId] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [newProduct, setNewProduct] = useState({
+    name: "",
+    price: "",
+    stock: 0,
   });
 
+  // Fetch products
+  const fetchProducts = async () => {
+    try {
+      const res = await getAllProductsService();
+      const data = res.data.map((product) => ({
+        productId: product.productId,
+        name: product.productName,
+        price: product.sellPrice,
+        stock: product.unit,
+      }));
+      setProducts(data);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  useEffect(() => {
+    // Lọc sản phẩm dựa trên từ khóa tìm kiếm
+    const lowercasedSearch = searchTerm.toLowerCase();
+    const filtered = products.filter(
+      (product) =>
+        product.name.toLowerCase().includes(lowercasedSearch) ||
+        product.price.toString().includes(searchTerm)
+    );
+    setFilteredProducts(filtered);
+  }, [searchTerm, products]);
+
+  // Update product
+  const handleUpdateProduct = async () => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      await axios.put(
+        `/products/${editProduct.productId}`,
+        {
+          productName: editProduct.name,
+          sellPrice: editProduct.price,
+          unit: editProduct.stock,
+          status: true,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      fetchProducts();
+      setIsEditModalOpen(false);
+    } catch (error) {
+      console.error("Failed to update product:", error);
+    }
+  };
+
+  // Add new product
+  const handleAddProduct = async () => {
+    try {
+      await axios.post("/products", {
+        productName: newProduct.name,
+        sellPrice: newProduct.price,
+        unit: newProduct.stock,
+        status: true,
+      });
+      fetchProducts();
+      setIsAddModalOpen(false);
+      setNewProduct({ name: "", price: "", stock: 0 });
+    } catch (error) {
+      console.error("Failed to add product:", error);
+    }
+  };
+
+  // Delete product
+  const handleConfirmDelete = async () => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      await axios.delete(`/products/${deleteProductId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      fetchProducts();
+      setIsDeleteModalOpen(false);
+    } catch (error) {
+      console.error("Failed to delete product:", error);
+    }
+  };
+
+  // Export to Excel
   const handleExportExcel = () => {
-    const data = filteredProducts.map((product) => ({
+    const data = products.map((product) => ({
       "Tên sản phẩm": product.name,
-      "Danh mục": product.category,
       Giá: product.price,
       "Số lượng tồn": product.stock,
     }));
@@ -79,189 +157,88 @@ const ProductManagement = () => {
       >
         Quản lý sản phẩm
       </Typography>
-      {/* Buttons */}
-      <Box
-        sx={{
-          display: "flex",
-          gap: 2,
-          justifyContent: "flex-end",
-          marginBottom: "20px",
-        }}
-      >
-        <Button
-          variant="contained"
-          sx={{
-            backgroundColor: "#1976d2",
-            color: "#fff",
-            padding: "10px 20px",
-            fontWeight: "bold",
-            borderRadius: "8px",
-            whiteSpace: "nowrap",
-          }}
-        >
-          Thêm sản phẩm mới
-        </Button>
-        <Button
-          variant="contained"
-          onClick={handleExportExcel}
-          startIcon={<Download />}
-          sx={{
-            backgroundColor: "#1976d2",
-            color: "#fff",
-            padding: "10px 20px",
-            fontWeight: "bold",
-            borderRadius: "8px",
-            whiteSpace: "nowrap",
-          }}
-        >
-          Thống kê
-        </Button>
-      </Box>
 
-      {/* Filters and Buttons Container */}
       <Box
         sx={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          gap: 2,
           marginBottom: "20px",
-          backgroundColor: "#ffffff",
-          padding: "20px",
-          borderRadius: "8px",
-          boxShadow: 2,
-          flexWrap: "wrap",
         }}
       >
-        {/* Search and Filters */}
-        <Box
-          sx={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: 3,
-            flex: 1,
-          }}
-        >
-          {/* Search Field */}
-          <Box sx={{ flex: 1, minWidth: "250px" }}>
-            <label
-              style={{
-                fontSize: "18px",
-                fontWeight: "bold",
-                marginBottom: "5px",
-                display: "block",
-              }}
-            >
-              Tìm kiếm sản phẩm
-            </label>
-            <TextField
-              variant="outlined"
-              fullWidth
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Nhập tên sản phẩm..."
-            />
-          </Box>
+        <Box sx={{ flex: 1, maxWidth: "400px" }}>
+          {" "}
+          <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+        </Box>
 
-          {/* Category Filter */}
-          <Box sx={{ flex: 1, minWidth: "200px" }}>
-            <label
-              style={{
-                fontSize: "18px",
-                fontWeight: "bold",
-                marginBottom: "5px",
-                display: "block",
-              }}
-            >
-              Danh mục
-            </label>
-            <FormControl fullWidth>
-              <Select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-              >
-                <MenuItem value="Tất cả">Tất cả</MenuItem>
-                {categories.map((category) => (
-                  <MenuItem value={category} key={category}>
-                    {category}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Box>
-
-          {/* Stock Status Filter */}
-          <Box sx={{ flex: 1, minWidth: "200px" }}>
-            <label
-              style={{
-                fontSize: "18px",
-                fontWeight: "bold",
-                marginBottom: "5px",
-                display: "block",
-              }}
-            >
-              Tình trạng
-            </label>
-            <FormControl fullWidth>
-              <Select
-                value={stockStatus}
-                onChange={(e) => setStockStatus(e.target.value)}
-              >
-                <MenuItem value="Tất cả">Tất cả</MenuItem>
-                <MenuItem value="Còn hàng">Còn hàng</MenuItem>
-                <MenuItem value="Hết hàng">Hết hàng</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
+        <Box sx={{ display: "flex", gap: 2 }}>
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={() => setIsAddModalOpen(true)}
+            sx={{
+              backgroundColor: "#1976d2",
+              color: "#fff",
+            }}
+          >
+            Thêm sản phẩm
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleExportExcel}
+            startIcon={<Download />}
+            sx={{
+              backgroundColor: "#1976d2",
+              color: "#fff",
+            }}
+          >
+            Thống kê
+          </Button>
         </Box>
       </Box>
 
-      {/* Product Table */}
       <TableContainer
         component={Paper}
-        sx={{
-          boxShadow: 3,
-          borderRadius: "8px",
-          overflowX: "auto",
-        }}
+        sx={{ boxShadow: 3, borderRadius: "8px" }}
       >
         <Table>
           <TableHead sx={{ backgroundColor: "#f0f0f0" }}>
             <TableRow>
               <TableCell align="center">Tên sản phẩm</TableCell>
               <TableCell align="center">Hình ảnh</TableCell>
-              <TableCell align="center">Danh mục</TableCell>
               <TableCell align="center">Giá</TableCell>
               <TableCell align="center">Số lượng tồn</TableCell>
+              <TableCell align="center">Danh mục</TableCell>
               <TableCell align="center">Hành động</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredProducts.map((product) => (
-              <TableRow key={product.id}>
+            {products.map((product) => (
+              <TableRow key={product.productId}>
+                <TableCell align="center">{product.name}</TableCell>
                 <TableCell align="center">{product.name}</TableCell>
                 <TableCell align="center">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    style={{
-                      width: "60px",
-                      height: "60px",
-                      objectFit: "cover",
-                      borderRadius: "8px",
+                  {product.price?.toLocaleString() ?? "N/A"} Đ
+                </TableCell>
+                <TableCell align="center">{product.stock ?? "N/A"}</TableCell>
+                <TableCell align="center">{product.name}</TableCell>
+                <TableCell align="center">
+                  <IconButton
+                    color="primary"
+                    onClick={() => {
+                      setEditProduct(product);
+                      setIsEditModalOpen(true);
                     }}
-                  />
-                </TableCell>
-                <TableCell align="center">{product.category}</TableCell>
-                <TableCell align="center">
-                  {product.price.toLocaleString()} Đ
-                </TableCell>
-                <TableCell align="center">{product.stock}</TableCell>
-                <TableCell align="center">
-                  <IconButton color="primary">
+                  >
                     <Edit />
                   </IconButton>
-                  <IconButton color="error">
+                  <IconButton
+                    color="error"
+                    onClick={() => {
+                      setDeleteProductId(product.productId);
+                      setIsDeleteModalOpen(true);
+                    }}
+                  >
                     <Delete />
                   </IconButton>
                 </TableCell>
@@ -270,6 +247,126 @@ const ProductManagement = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      {/* Modal thêm sản phẩm */}
+      <Dialog open={isAddModalOpen} onClose={() => setIsAddModalOpen(false)}>
+        <Box sx={{ padding: 3 }}>
+          <Typography variant="h6" marginBottom={2}>
+            Thêm sản phẩm mới
+          </Typography>
+          <TextField
+            label="Tên sản phẩm"
+            fullWidth
+            value={newProduct.name}
+            onChange={(e) =>
+              setNewProduct({ ...newProduct, name: e.target.value })
+            }
+            margin="normal"
+          />
+          <TextField
+            label="Giá"
+            fullWidth
+            type="number"
+            value={newProduct.price}
+            onChange={(e) =>
+              setNewProduct({ ...newProduct, price: e.target.value })
+            }
+            margin="normal"
+          />
+          <TextField
+            label="Số lượng tồn"
+            fullWidth
+            type="number"
+            value={newProduct.stock}
+            onChange={(e) =>
+              setNewProduct({ ...newProduct, stock: e.target.value })
+            }
+            margin="normal"
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleAddProduct}
+            sx={{ marginTop: 2 }}
+          >
+            Thêm
+          </Button>
+        </Box>
+      </Dialog>
+
+      {/* Modal chỉnh sửa sản phẩm */}
+      <Dialog open={isEditModalOpen} onClose={() => setIsEditModalOpen(false)}>
+        <Box sx={{ padding: 3 }}>
+          <Typography variant="h6" marginBottom={2}>
+            Chỉnh sửa sản phẩm
+          </Typography>
+          <TextField
+            label="Tên sản phẩm"
+            fullWidth
+            value={editProduct?.name || ""}
+            onChange={(e) =>
+              setEditProduct({ ...editProduct, name: e.target.value })
+            }
+            margin="normal"
+          />
+          <TextField
+            label="Giá"
+            fullWidth
+            type="number"
+            value={editProduct?.price || ""}
+            onChange={(e) =>
+              setEditProduct({ ...editProduct, price: e.target.value })
+            }
+            margin="normal"
+          />
+          <TextField
+            label="Số lượng tồn"
+            fullWidth
+            type="number"
+            value={editProduct?.stock || ""}
+            onChange={(e) =>
+              setEditProduct({ ...editProduct, stock: e.target.value })
+            }
+            margin="normal"
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleUpdateProduct}
+            sx={{ marginTop: 2 }}
+          >
+            Lưu thay đổi
+          </Button>
+        </Box>
+      </Dialog>
+
+      {/* Modal xác nhận xóa sản phẩm */}
+      <Dialog
+        open={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+      >
+        <Box sx={{ padding: 3 }}>
+          <Typography>Bạn có chắc chắn muốn xóa sản phẩm này?</Typography>
+          <Box
+            sx={{ display: "flex", justifyContent: "flex-end", marginTop: 2 }}
+          >
+            <Button
+              variant="contained"
+              color="error"
+              onClick={handleConfirmDelete}
+              sx={{ marginRight: 2 }}
+            >
+              Xóa
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={() => setIsDeleteModalOpen(false)}
+            >
+              Hủy
+            </Button>
+          </Box>
+        </Box>
+      </Dialog>
     </Box>
   );
 };

@@ -15,6 +15,7 @@ import {
   CardContent,
 } from "@mui/material";
 import { salesData } from "../utils/data";
+import AccountingManagement from "../components/componentManagement/AccountingManagement";
 
 const ManagementHome = () => {
   const [timeFrame, setTimeFrame] = useState("today");
@@ -222,6 +223,10 @@ const ManagementHome = () => {
           <Route
             path="/management/orders-management"
             element={<OrdersManagement />}
+          />
+          <Route
+            path="/management/accounting-management"
+            element={<AccountingManagement />}
           />
         </Routes>
       </Box>

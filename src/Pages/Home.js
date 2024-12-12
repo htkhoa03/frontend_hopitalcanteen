@@ -15,7 +15,7 @@ import {
   Badge,
 } from "@mui/material";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import { categories, allProducts } from "../utils/data";
+import { categories } from "../utils/data";
 import { getAllProductsService } from "../axios/productService";
 
 const Home = () => {

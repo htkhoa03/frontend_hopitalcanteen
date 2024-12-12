@@ -8,7 +8,7 @@ import {
   Box,
 } from "@mui/material";
 
-const ProductCard = ({ product, onAddToCart }) => {
+const Product = ({ product, onAddToCart }) => {
   return (
     <Card
       sx={{
@@ -89,4 +89,4 @@ const ProductCard = ({ product, onAddToCart }) => {
   );
 };
 
-export default ProductCard;
+export default Product;

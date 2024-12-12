@@ -5,7 +5,6 @@ import { PersistGate } from "redux-persist/integration/react";
 import { store, persistor } from "./redux/store";
 import Layout from "./Pages/Layout";
 import Login from "./Pages/Login";
-import ForgotPassword from "./Pages/ForgotPassword";
 import ManagementHome from "./Pages/ManagementHome";
 import User from "./Pages/User";
 import Home from "./Pages/Home";
@@ -14,6 +13,8 @@ import OrdersManagement from "./components/componentManagement/OrdersManagement"
 import LayoutManagement from "./Pages/LayoutManagement";
 import PatientManagement from "./components/componentManagement/PatientManagement";
 import EmployeeManagement from "./components/componentManagement/EmployeesManagement";
+import AccountingManagement from "./components/componentManagement/AccountingManagement";
+import Patient from "./Pages/Patient";
 
 function App() {
   return (
@@ -25,7 +26,7 @@ function App() {
               {/* Public Routes */}
               <Route path="/" element={<Login />} />
               <Route path="/home" element={<Home />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/patient" element={<Patient />} />
               <Route path="/user" element={<User />} />
 
               {/* Management Routes */}
@@ -46,6 +47,10 @@ function App() {
                 <Route
                   path="orders-management"
                   element={<OrdersManagement />}
+                />
+                <Route
+                  path="accounting-management"
+                  element={<AccountingManagement />}
                 />
               </Route>
             </Routes>

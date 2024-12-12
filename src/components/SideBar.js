@@ -5,6 +5,7 @@ import InventoryIcon from "@mui/icons-material/Inventory";
 import PeopleIcon from "@mui/icons-material/People";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import ReceiptIcon from "@mui/icons-material/Receipt";
+import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import { useNavigate } from "react-router-dom";
 
 const SideBar = () => {
@@ -15,11 +16,6 @@ const SideBar = () => {
       text: "Dashboard",
       icon: <DashboardIcon />,
       path: "/management/management-home",
-    },
-    {
-      text: "Quản lý sản phẩm",
-      icon: <InventoryIcon />,
-      path: "/management/product-management",
     },
     {
       text: "Quản lý nhân viên",
@@ -36,6 +32,16 @@ const SideBar = () => {
       icon: <ReceiptIcon />,
       path: "/management/orders-management",
     },
+    {
+      text: "Quản lý sản phẩm",
+      icon: <InventoryIcon />,
+      path: "/management/product-management",
+    },
+    {
+      text: "Kế toán",
+      icon: <AccountBalanceIcon />,
+      path: "/management/accounting-management",
+    },
   ];
 
   return (
@@ -48,7 +54,6 @@ const SideBar = () => {
         padding: "20px 0",
         position: { xs: "relative", md: "fixed" },
         zIndex: 10,
-
         marginTop: "30px",
         left: 0,
       }}
