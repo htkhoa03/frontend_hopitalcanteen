@@ -27,24 +27,25 @@ const CategoryList = ({ categories, selectedCategory, onSelectCategory }) => {
         {categories.map((category) => (
           <ListItem
             button
-            key={category}
-            onClick={() => onSelectCategory(category)}
+            key={category.categoryId}
+            onClick={() => onSelectCategory(category.name)}
             sx={{
               borderRadius: "8px",
               "&:hover": {
                 backgroundColor: "#e3f2fd",
               },
               backgroundColor:
-                selectedCategory === category ? "#1976D2" : "transparent",
+                selectedCategory === category.name ? "#1976D2" : "transparent",
             }}
           >
             <ListItemText
-              primary={category}
+              primary={category.name}
               primaryTypographyProps={{
                 style: {
                   fontWeight: "bold",
                   fontSize: "15px",
-                  color: selectedCategory === category ? "white" : "#424242",
+                  color:
+                    selectedCategory === category.name ? "white" : "#424242",
                 },
               }}
             />

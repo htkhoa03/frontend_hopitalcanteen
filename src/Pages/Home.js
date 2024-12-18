@@ -31,12 +31,19 @@ const Home = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const fetchedCategories = await getAllCategoriesService();
-        setCategories(["Tất cả", ...fetchedCategories.map((cat) => cat.name)]);
+        const response = await getAllCategoriesService();
+        const fetchedCategories = response.data.data;
+        console.log("Fetched categories:", fetchedCategories);
+
+        setCategories([
+          { categoryId: 0, name: "Tất cả" },
+          ...fetchedCategories,
+        ]);
       } catch (error) {
         console.error("Error fetching categories:", error);
       }
     };
+
     fetchCategories();
   }, []);
 
@@ -76,7 +83,7 @@ const Home = () => {
         )
       : products.filter(
           (product) =>
-            product.category === selectedCategory &&
+            product.category?.name === selectedCategory &&
             product.name?.toLowerCase().includes(searchTerm.toLowerCase())
         );
 

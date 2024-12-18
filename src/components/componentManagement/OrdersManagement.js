@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
+  Button,
   Typography,
   Table,
   TableBody,
@@ -9,228 +10,166 @@ import {
   TableHead,
   TableRow,
   Paper,
-  Button,
   Dialog,
-  DialogActions,
-  DialogContent,
   DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
-import jsPDF from "jspdf";
+import { Print, Check, Delete } from "@mui/icons-material";
+import { jsPDF } from "jspdf";
 
 const OrdersManagement = () => {
-  const [showConfirmed, setShowConfirmed] = useState(false); // Mặc định xem đơn hàng chưa xác nhận
-  const [showCancelled, setShowCancelled] = useState(false); // Trạng thái xem đơn hàng đã hủy
+  const [orders, setOrders] = useState([]);
+  const [filteredOrders, setFilteredOrders] = useState([]);
+  const [orderStatus, setOrderStatus] = useState("all");
   const [selectedOrder, setSelectedOrder] = useState(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [cancelDialogOpen, setCancelDialogOpen] = useState(false); // Dialog xác nhận hủy
+  const [orderProducts, setOrderProducts] = useState([]);
+  const [openDialog, setOpenDialog] = useState(false);
 
-  const [orders, setOrders] = useState([
-    {
-      id: "ORD001",
-      products: [
-        { name: "Sản phẩm A", quantity: 2, price: 500000 },
-        { name: "Sản phẩm B", quantity: 1, price: 1000000 },
-      ],
-      confirm: false,
-      cancelled: false,
-    },
-    {
-      id: "ORD002",
-      products: [
-        { name: "Sản phẩm C", quantity: 3, price: 300000 },
-        { name: "Sản phẩm D", quantity: 2, price: 800000 },
-      ],
-      confirm: true,
-      cancelled: false,
-    },
-    {
-      id: "ORD003",
-      products: [{ name: "Sản phẩm E", quantity: 1, price: 1500000 }],
-      confirm: false,
-      cancelled: true,
-    },
-  ]);
-
-  const handleConfirmClick = (order) => {
-    setSelectedOrder(order);
-    setDialogOpen(true);
-  };
-
-  const handleCancelOrder = (orderId) => {
-    setCancelDialogOpen(true);
-    setSelectedOrder(orderId); // Lưu lại ID đơn hàng để xác nhận hủy
-  };
-
-  const handleCancelConfirm = () => {
-    setOrders((prevOrders) =>
-      prevOrders.map((order) =>
-        order.id === selectedOrder
-          ? { ...order, cancelled: true, confirm: false }
-          : order
-      )
-    );
-    setCancelDialogOpen(false);
-  };
-
-  const handleCancelClose = () => {
-    setCancelDialogOpen(false);
-  };
-
-  const handlePrintBill = () => {
-    const pdf = new jsPDF({
-      orientation: "portrait",
-      unit: "cm",
-      format: [8, 30],
-    });
-
-    pdf.setFont("aria");
-
-    if (selectedOrder) {
-      let y = 1;
-
-      // Header
-      pdf.setFontSize(12);
-      pdf.text("CĂN TIN BỆNH VIỆN", 1, y);
-      y += 0.8;
-      pdf.setFontSize(9);
-      pdf.text("Địa chỉ: 123 Đường ABC, Quận X, TP.HCM", 1, y);
-      y += 0.6;
-      pdf.text(`Mã đơn hàng: ${selectedOrder.id}`, 1, y);
-      y += 0.6;
-      pdf.text(`Thời gian: ${new Date().toLocaleString()}`, 1, y);
-
-      // Table header
-      y += 0.8;
-      pdf.setFontSize(8);
-      pdf.text("Tên sản phẩm", 1, y);
-      pdf.text("SL", 5, y);
-      pdf.text("Đơn giá", 6, y);
-
-      // Table content
-      let total = 0;
-      y += 0.6;
-      selectedOrder.products.forEach((product) => {
-        pdf.text(product.name, 1, y);
-        pdf.text(`${product.quantity}`, 5, y, { align: "right" });
-        pdf.text(`${product.price.toLocaleString("vi-VN")}`, 6.5, y, {
-          align: "right",
-        });
-        total += product.quantity * product.price;
-        y += 0.6;
-      });
-
-      // Total
-      y += 0.6;
-      pdf.text("Tổng cộng:", 1, y);
-      pdf.text(`${total.toLocaleString("vi-VN")} Đ`, 6.5, y, {
-        align: "right",
-      });
-
-      // Footer
-      y += 1;
-      pdf.setFontSize(9);
-      pdf.text("Cảm ơn quý khách đã mua sắm tại Căn tin!", 1, y);
-      y += 0.6;
-      pdf.text("Hẹn gặp lại!", 1, y);
-
-      // Save PDF
-      pdf.save(`bill_${selectedOrder.id}.pdf`);
-
-      // Cập nhật trạng thái đơn hàng thành đã xác nhận và chuyển qua chế độ xem đơn hàng đã xác nhận
-      setOrders((prevOrders) =>
-        prevOrders.map((order) =>
-          order.id === selectedOrder.id ? { ...order, confirm: true } : order
-        )
-      );
-
-      // Đóng dialog và chuyển qua chế độ xem đơn hàng đã xác nhận
-      setDialogOpen(false);
-      setShowConfirmed(true); // Chuyển sang chế độ xem đơn hàng đã xác nhận
-    }
-  };
+  // Fetch data giả lập
+  useEffect(() => {
+    const mockOrders = [
+      {
+        id: "DH001",
+        total: 500000,
+        status: "confirmed",
+        orderTime: "2024-12-15 10:30",
+        products: [
+          { name: "Sản phẩm A", quantity: 2, price: 100000 },
+          { name: "Sản phẩm B", quantity: 1, price: 300000 },
+        ],
+      },
+      {
+        id: "DH002",
+        total: 200000,
+        status: "pending",
+        orderTime: "2024-12-16 14:00",
+        products: [{ name: "Sản phẩm C", quantity: 1, price: 200000 }],
+      },
+      {
+        id: "DH003",
+        total: 150000,
+        status: "cancelled",
+        orderTime: "2024-12-17 09:15",
+        products: [{ name: "Sản phẩm D", quantity: 3, price: 50000 }],
+      },
+    ];
+    setOrders(mockOrders);
+    setFilteredOrders(mockOrders);
+  }, []);
 
   // Lọc đơn hàng theo trạng thái
-  const filteredOrders = orders.filter((order) => {
-    if (showConfirmed) {
-      return order.confirm && !order.cancelled;
-    } else if (showCancelled) {
-      return order.cancelled;
+  useEffect(() => {
+    if (orderStatus === "all") {
+      setFilteredOrders(orders.filter((order) => order.status === "pending"));
     } else {
-      return !order.confirm && !order.cancelled;
+      setFilteredOrders(orders.filter((order) => order.status === orderStatus));
     }
-  });
+  }, [orderStatus, orders]);
+
+  // Xử lý xác nhận đơn hàng
+  const handleConfirmOrder = (order) => {
+    setOrders((prevOrders) =>
+      prevOrders.map((item) =>
+        item.id === order.id ? { ...item, status: "confirmed" } : item
+      )
+    );
+    setSelectedOrder(order);
+    setOrderProducts(order.products);
+    setOpenDialog(true);
+  };
+
+  // In hóa đơn ra file PDF
+  const handlePrintBill = () => {
+    const doc = new jsPDF();
+    doc.text(`Hóa đơn: ${selectedOrder.id}`, 10, 10);
+    doc.text(`Thời gian đặt hàng: ${selectedOrder.orderTime}`, 10, 20);
+    doc.text(`Tổng tiền: ${selectedOrder.total.toLocaleString()} Đ`, 10, 30);
+    selectedOrder.products.forEach((product, index) => {
+      doc.text(
+        `${index + 1}. ${product.name} - Số lượng: ${
+          product.quantity
+        } - Giá: ${product.price.toLocaleString()} Đ`,
+        10,
+        40 + index * 10
+      );
+    });
+    doc.save(`Hoa_don_${selectedOrder.id}.pdf`);
+  };
 
   return (
-    <Box sx={{ padding: 3, backgroundColor: "#f9f9f9", borderRadius: 2 }}>
-      <Typography variant="h5" sx={{ fontWeight: "bold", mb: 3 }}>
+    <Box sx={{ backgroundColor: "#f9f9f9", minHeight: "100vh", p: 3 }}>
+      <Typography
+        variant="h4"
+        sx={{
+          textAlign: "center",
+          color: "#1976d2",
+          fontWeight: "bold",
+          mb: 4,
+          mt: 6,
+        }}
+      >
         Quản lý đơn hàng
       </Typography>
 
-      {/* Buttons to toggle between confirmed, unconfirmed, and cancelled orders */}
-      <Box sx={{ mb: 3 }}>
+      {/* Nút chuyển trạng thái */}
+      <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mb: 3 }}>
         <Button
-          variant="contained"
-          color={!showConfirmed ? "primary" : "default"}
-          onClick={() => setShowConfirmed(false)}
+          variant={orderStatus === "all" ? "contained" : "outlined"}
+          onClick={() => setOrderStatus("all")}
+          sx={{ textTransform: "none" }}
         >
-          Xem đơn hàng chưa xác nhận
+          Tất cả đơn hàng
         </Button>
         <Button
-          variant="contained"
-          color={showConfirmed ? "secondary" : "default"}
-          onClick={() => setShowConfirmed(true)}
-          sx={{ ml: 2 }}
+          variant={orderStatus === "confirmed" ? "contained" : "outlined"}
+          onClick={() => setOrderStatus("confirmed")}
+          sx={{ textTransform: "none" }}
         >
-          Xem đơn hàng đã xác nhận
+          Đơn hàng đã xác nhận
         </Button>
         <Button
-          variant="contained"
-          color={showCancelled ? "error" : "default"}
-          onClick={() => setShowCancelled(true)}
-          sx={{ ml: 2 }}
+          variant={orderStatus === "cancelled" ? "contained" : "outlined"}
+          onClick={() => setOrderStatus("cancelled")}
+          sx={{ textTransform: "none" }}
         >
-          Xem đơn hàng đã bị hủy
+          Đơn hàng đã hủy
         </Button>
       </Box>
 
-      <TableContainer component={Paper}>
+      {/* Bảng danh sách đơn hàng */}
+      <TableContainer component={Paper} sx={{ boxShadow: 3 }}>
         <Table>
-          <TableHead>
+          <TableHead sx={{ backgroundColor: "#f0f0f0" }}>
             <TableRow>
-              <TableCell align="center">ID Đơn hàng</TableCell>
-              <TableCell align="center">Số lượng sản phẩm</TableCell>
-              <TableCell align="center">Thao tác</TableCell>
+              <TableCell align="center">Mã đơn hàng</TableCell>
+              <TableCell align="center">Tổng giá</TableCell>
+              <TableCell align="center">Hành động</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredOrders.map((order, index) => (
-              <TableRow key={index}>
+            {filteredOrders.map((order) => (
+              <TableRow key={order.id}>
                 <TableCell align="center">{order.id}</TableCell>
-                <TableCell align="center">{order.products.length}</TableCell>
                 <TableCell align="center">
-                  {order.cancelled ? (
-                    <Typography color="error">Đã hủy</Typography>
-                  ) : order.confirm ? (
-                    <Typography color="success.main">Đã xác nhận</Typography>
-                  ) : (
-                    <>
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={() => handleConfirmClick(order)}
-                      >
-                        Xác nhận
-                      </Button>
-                      <Button
-                        variant="contained"
-                        color="secondary"
-                        onClick={() => handleCancelOrder(order.id)}
-                        sx={{ ml: 2 }}
-                      >
-                        Hủy
-                      </Button>
-                    </>
-                  )}
+                  {order.total.toLocaleString()} Đ
+                </TableCell>
+                <TableCell align="center">
+                  <Button
+                    startIcon={<Check />}
+                    sx={{ mr: 1 }}
+                    onClick={() => handleConfirmOrder(order)}
+                    disabled={order.status !== "pending"}
+                  >
+                    Xác nhận
+                  </Button>
+                  <Button
+                    startIcon={<Delete />}
+                    color="error"
+                    onClick={() => console.log(`Xóa: ${order.id}`)}
+                  >
+                    Xóa
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
@@ -238,56 +177,44 @@ const OrdersManagement = () => {
         </Table>
       </TableContainer>
 
-      {/* Dialog xác nhận hủy */}
-      <Dialog open={cancelDialogOpen} onClose={handleCancelClose}>
-        <DialogTitle>Hủy đơn hàng</DialogTitle>
+      {/* Dialog hiển thị sản phẩm */}
+      <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
+        <DialogTitle>Chi tiết đơn hàng: {selectedOrder?.id}</DialogTitle>
         <DialogContent>
-          <Typography>Bạn có chắc chắn muốn hủy đơn hàng này không?</Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCancelClose} color="secondary">
-            Hủy
-          </Button>
-          <Button onClick={handleCancelConfirm} color="primary">
-            Xác nhận
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Dialog chi tiết đơn hàng và in bill */}
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
-        <DialogTitle>Chi tiết đơn hàng</DialogTitle>
-        <DialogContent>
-          {selectedOrder && (
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Tên sản phẩm</TableCell>
-                  <TableCell>Số lượng</TableCell>
-                  <TableCell>Giá</TableCell>
+          <Typography gutterBottom>
+            Thời gian đặt hàng: {selectedOrder?.orderTime}
+          </Typography>
+          <Typography variant="h6" gutterBottom>
+            Tổng tiền: {selectedOrder?.total?.toLocaleString()} Đ
+          </Typography>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Sản phẩm</TableCell>
+                <TableCell>Số lượng</TableCell>
+                <TableCell>Giá</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {orderProducts.map((product, index) => (
+                <TableRow key={index}>
+                  <TableCell>{product.name}</TableCell>
+                  <TableCell>{product.quantity}</TableCell>
+                  <TableCell>{product.price.toLocaleString()} Đ</TableCell>
                 </TableRow>
-              </TableHead>
-              <TableBody>
-                {selectedOrder.products.map((product, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{product.name}</TableCell>
-                    <TableCell>{product.quantity}</TableCell>
-                    <TableCell>
-                      {product.price.toLocaleString("vi-VN")} Đ
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+              ))}
+            </TableBody>
+          </Table>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDialogOpen(false)} color="secondary">
-            Đóng
+          <Button
+            startIcon={<Print />}
+            variant="contained"
+            onClick={handlePrintBill}
+          >
+            In hóa đơn
           </Button>
-          <Button onClick={handlePrintBill} color="primary">
-            In Bill
-          </Button>
+          <Button onClick={() => setOpenDialog(false)}>Đóng</Button>
         </DialogActions>
       </Dialog>
     </Box>

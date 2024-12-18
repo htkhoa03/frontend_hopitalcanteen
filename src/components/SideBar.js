@@ -18,11 +18,7 @@ const SideBar = () => {
       icon: <DashboardIcon />,
       path: "/management/management-home",
     },
-    {
-      text: "Quản lý danh mục sản phẩm",
-      icon: <CategoryIcon />,
-      path: "/management/category-management",
-    },
+
     {
       text: "Quản lý nhân viên",
       icon: <PeopleIcon />,
@@ -43,7 +39,11 @@ const SideBar = () => {
       icon: <InventoryIcon />,
       path: "/management/product-management",
     },
-
+    {
+      text: "Quản lý danh mục",
+      icon: <CategoryIcon />,
+      path: "/management/category-management",
+    },
     {
       text: "Kế toán",
       icon: <AccountBalanceIcon />,

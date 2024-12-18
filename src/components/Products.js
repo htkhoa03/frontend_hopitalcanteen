@@ -59,7 +59,7 @@ const Product = ({ product, onAddToCart }) => {
           Giá: {product.price} đ
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Số lượng: {product.unit}
+          Số lượng: {product.stock?.quantity || 0}
         </Typography>
       </CardContent>
 

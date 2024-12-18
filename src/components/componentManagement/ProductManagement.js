@@ -30,39 +30,38 @@ import Search from "../Search";
 
 const ProductManagement = () => {
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredProducts, setFilteredProducts] = useState([]);
-  const [editProduct, setEditProduct] = useState(null);
-  const [deleteProductId, setDeleteProductId] = useState(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [newProduct, setNewProduct] = useState({
     name: "",
     price: "",
-    unit: 0,
+    unit: "",
+    stock: null,
     category: "",
     images: [],
   });
-  const [categories, setCategories] = useState([]);
-  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [editProduct, setEditProduct] = useState(null);
+  const [deleteProductId, setDeleteProductId] = useState(null);
   const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [openSnackbar, setOpenSnackbar] = useState(false);
 
-  // Fetch products and categories
+  // Fetch dữ liệu từ backend
   const fetchProducts = async () => {
     try {
       const res = await getAllProductsService();
-      const data = res.data.data;
-      setProducts(data);
+      setProducts(res.data.data);
     } catch (error) {
       console.error("Error fetching products:", error);
     }
   };
 
   const fetchCategories = async () => {
-    // Giả sử bạn có API để lấy danh mục
     try {
-      const res = await axios.get("/categories");
+      const res = await axios.get("/categories/all");
       setCategories(res.data.data);
     } catch (error) {
       console.error("Error fetching categories:", error);
@@ -76,34 +75,29 @@ const ProductManagement = () => {
 
   useEffect(() => {
     const lowercasedSearch = searchTerm.toLowerCase();
-    const filtered = products.filter(
-      (product) =>
-        product.name.toLowerCase().includes(lowercasedSearch) ||
-        product.price.toString().includes(searchTerm)
+    setFilteredProducts(
+      products.filter(
+        (product) =>
+          product.name.toLowerCase().includes(lowercasedSearch) ||
+          product.price.toString().includes(searchTerm)
+      )
     );
-    setFilteredProducts(filtered);
   }, [searchTerm, products]);
 
-  // Handle Add product
+  // Thêm sản phẩm mới
   const handleAddProduct = async () => {
-    const formData = new FormData();
-    formData.append("name", newProduct.name);
-    formData.append("price", newProduct.price);
-    formData.append("unit", newProduct.unit);
-    formData.append("category", newProduct.category);
-    newProduct.images.forEach((image) => formData.append("files", image));
+    const productData = new FormData();
+    productData.append("name", newProduct.name);
+    productData.append("price", newProduct.price);
+    productData.append("unit", newProduct.unit);
+    productData.append("stock", newProduct.stock.quantity);
+    productData.append("category", newProduct.category.name);
+    newProduct.images.forEach((image) => productData.append("images", image));
 
     try {
-      await axios.post("/products", formData);
+      await axios.post("/products", productData);
       fetchProducts();
       setIsAddModalOpen(false);
-      setNewProduct({
-        name: "",
-        price: "",
-        unit: 0,
-        category: [],
-        images: [],
-      });
       setSnackbarMessage("Sản phẩm đã được thêm thành công!");
       setOpenSnackbar(true);
     } catch (error) {
@@ -111,17 +105,31 @@ const ProductManagement = () => {
     }
   };
 
-  // Handle Update product
+  const handleFileChange = (event, isEdit = false) => {
+    const files = Array.from(event.target.files);
+    if (isEdit) {
+      setEditProduct({ ...editProduct, images: files });
+    } else {
+      setNewProduct({ ...newProduct, images: files });
+    }
+  };
+
+  // Chỉnh sửa sản phẩm
   const handleUpdateProduct = async () => {
-    const formData = new FormData();
-    formData.append("name", editProduct.name);
-    formData.append("price", editProduct.price);
-    formData.append("unit", editProduct.unit);
-    formData.append("category", editProduct.category.name);
-    editProduct.images.forEach((image) => formData.append("files", image));
+    const productData = new FormData();
+    productData.append("name", editProduct.name);
+    productData.append("price", editProduct.price);
+    productData.append("unit", editProduct.unit);
+    productData.append("stock", editProduct.stock.quantity);
+    productData.append("category", editProduct.category.name);
+    if (editProduct.images) {
+      editProduct.images.forEach((image) =>
+        productData.append("images", image)
+      );
+    }
 
     try {
-      await axios.put(`/products/${editProduct.id}`, formData);
+      await axios.put(`/products/${editProduct.id}`, productData);
       fetchProducts();
       setIsEditModalOpen(false);
       setSnackbarMessage("Sản phẩm đã được cập nhật thành công!");
@@ -131,7 +139,7 @@ const ProductManagement = () => {
     }
   };
 
-  // Handle delete product
+  // Xóa sản phẩm
   const handleConfirmDelete = async () => {
     try {
       await axios.delete(`/products/${deleteProductId}`);
@@ -144,20 +152,21 @@ const ProductManagement = () => {
     }
   };
 
-  // Export to Excel
+  // Xuất dữ liệu ra Excel
   const handleExportExcel = () => {
     const data = products.map((product) => ({
+      "Id sản phẩm": product.id,
       "Tên sản phẩm": product.name,
       Giá: product.price,
-      "Số lượng tồn": product.unit,
-      "Danh mục": product.category.name,
+      "Đơn vị tính": product.unit,
+      "Số lượng tồn": product.stock?.quantity,
+      "Danh mục": product.category?.name,
     }));
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Sản phẩm");
     XLSX.writeFile(wb, "Danh_sach_san_pham.xlsx");
   };
-
   return (
     <Box
       sx={{
@@ -227,7 +236,8 @@ const ProductManagement = () => {
               <TableCell align="center">Tên sản phẩm</TableCell>
               <TableCell align="center">Hình ảnh</TableCell>
               <TableCell align="center">Giá</TableCell>
-              <TableCell align="center">Số lượng tồn</TableCell>
+              <TableCell align="center">Đơn vị tính</TableCell>
+              <TableCell align="center">Số lượng</TableCell>
               <TableCell align="center">Danh mục</TableCell>
               <TableCell align="center">Hành động</TableCell>
             </TableRow>
@@ -256,6 +266,11 @@ const ProductManagement = () => {
                   {product.price?.toLocaleString()} Đ
                 </TableCell>
                 <TableCell align="center">{product.unit}</TableCell>
+                <TableCell align="center">
+                  {product.stock && product.stock.quantity !== undefined
+                    ? product.stock.quantity
+                    : null}
+                </TableCell>
                 <TableCell align="center">{product.category.name}</TableCell>
                 <TableCell align="center">
                   <IconButton
@@ -307,6 +322,13 @@ const ProductManagement = () => {
             margin="normal"
           />
           <TextField
+            fullWidth
+            type="file"
+            inputProps={{ multiple: true }}
+            onChange={handleFileChange}
+            margin="normal"
+          />
+          <TextField
             label="Giá"
             fullWidth
             type="number"
@@ -317,30 +339,50 @@ const ProductManagement = () => {
             margin="normal"
           />
           <TextField
-            label="Số lượng tồn"
+            label="Đơn vị tính"
             fullWidth
-            type="number"
-            value={newProduct.unit}
+            value={newProduct?.unit || ""}
             onChange={(e) =>
               setNewProduct({ ...newProduct, unit: e.target.value })
             }
             margin="normal"
           />
+          <TextField
+            label="Số lượng tồn"
+            fullWidth
+            type="number"
+            value={newProduct?.stock?.quantity || null}
+            onChange={(e) => {
+              setNewProduct({
+                ...newProduct,
+                stock: {
+                  ...newProduct.stock,
+                  quantity: Number(e.target.value),
+                },
+              });
+            }}
+            margin="normal"
+          />
+
           <FormControl fullWidth margin="normal">
             <InputLabel>Danh mục</InputLabel>
             <Select
-              value={newProduct.category}
-              onChange={(e) =>
-                setNewProduct({ ...newProduct, category: e.target.value })
-              }
+              value={newProduct.category?.name || ""}
+              onChange={(e) => {
+                const selectedCategory = categories.find(
+                  (category) => category.name === e.target.value
+                );
+                setNewProduct({ ...newProduct, category: selectedCategory });
+              }}
             >
               {categories.map((category) => (
-                <MenuItem key={category.id} value={category.name}>
+                <MenuItem key={category.categoryId} value={category.name}>
                   {category.name}
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
+
           <Button variant="contained" onClick={handleAddProduct}>
             Thêm sản phẩm
           </Button>
@@ -363,6 +405,13 @@ const ProductManagement = () => {
             margin="normal"
           />
           <TextField
+            fullWidth
+            type="file"
+            inputProps={{ multiple: true }}
+            onChange={handleFileChange}
+            margin="normal"
+          />
+          <TextField
             label="Giá"
             fullWidth
             type="number"
@@ -373,30 +422,56 @@ const ProductManagement = () => {
             margin="normal"
           />
           <TextField
-            label="Số lượng tồn"
+            label="Đơn vị tính"
             fullWidth
-            type="number"
             value={editProduct?.unit || ""}
             onChange={(e) =>
               setEditProduct({ ...editProduct, unit: e.target.value })
             }
             margin="normal"
           />
+
+          <TextField
+            label="Số lượng tồn"
+            fullWidth
+            type="number"
+            value={editProduct?.stock?.quantity || null}
+            onChange={(e) => {
+              setEditProduct({
+                ...editProduct,
+                stock: {
+                  ...editProduct.stock,
+                  quantity: Number(e.target.value),
+                },
+              });
+            }}
+            margin="normal"
+          />
+
           <FormControl fullWidth margin="normal">
             <InputLabel>Danh mục</InputLabel>
             <Select
-              value={editProduct?.category || ""}
-              onChange={(e) =>
-                setEditProduct({ ...editProduct, category: e.target.value })
-              }
+              value={editProduct?.category?.name || ""}
+              onChange={(e) => {
+                const selectedCategory = categories.find(
+                  (category) => category.name === e.target.value
+                );
+                if (selectedCategory) {
+                  setEditProduct({
+                    ...editProduct,
+                    category: selectedCategory,
+                  });
+                }
+              }}
             >
               {categories.map((category) => (
-                <MenuItem key={category.id} value={category.name}>
+                <MenuItem key={category.categoryId} value={category.name}>
                   {category.name}
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
+
           <Button variant="contained" onClick={handleUpdateProduct}>
             Lưu thay đổi
           </Button>
@@ -413,15 +488,15 @@ const ProductManagement = () => {
           <Typography>Bạn có chắc chắn muốn xóa sản phẩm này?</Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setIsDeleteModalOpen(false)} color="primary">
-            Hủy
-          </Button>
           <Button
             onClick={handleConfirmDelete}
             color="error"
             variant="contained"
           >
             Xóa
+          </Button>
+          <Button onClick={() => setIsDeleteModalOpen(false)} color="primary">
+            Hủy
           </Button>
         </DialogActions>
       </Dialog>
