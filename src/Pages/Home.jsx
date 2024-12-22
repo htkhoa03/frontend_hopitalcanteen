@@ -3,6 +3,7 @@ import CategoryList from "../components/CategoryList";
 import Cart from "../components/Cart";
 import Search from "../components/Search";
 import Products from "../components/Products";
+import SnackbarNotification from "../components/SnackbarNotification";
 import "../components/componentStyles/Home.css";
 import {
   Box,
@@ -25,20 +26,18 @@ const Home = () => {
   const [sortOrder, setSortOrder] = useState("asc");
   const [isCartVisible, setIsCartVisible] = useState(false);
   const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState(["Tất cả"]); // Danh mục mặc định
+  const [categories, setCategories] = useState(null);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
 
-  // Lấy danh mục từ backend
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const response = await getAllCategoriesService();
-        const fetchedCategories = response.data.data;
-        console.log("Fetched categories:", fetchedCategories);
-
-        setCategories([
-          { categoryId: 0, name: "Tất cả" },
-          ...fetchedCategories,
-        ]);
+        setCategories([{ categoryId: 0, name: "Tất cả" }, ...response]);
       } catch (error) {
         console.error("Error fetching categories:", error);
       }
@@ -47,7 +46,6 @@ const Home = () => {
     fetchCategories();
   }, []);
 
-  // Lấy sản phẩm từ backend
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -60,7 +58,6 @@ const Home = () => {
     fetchProducts();
   }, []);
 
-  // Các hàm logic khác
   const toggleCartVisibility = () => setIsCartVisible((prev) => !prev);
 
   const handleAddToCart = (product) =>
@@ -75,6 +72,10 @@ const Home = () => {
       }
       return [...prevItems, { ...product, quantity: 1 }];
     });
+
+  const showSnackbar = (message, severity) => {
+    setSnackbar({ open: true, message, severity });
+  };
 
   const filteredProducts =
     selectedCategory === "Tất cả"
@@ -96,23 +97,18 @@ const Home = () => {
   return (
     <Container style={{ marginTop: 50, padding: 0, maxWidth: 2000 }}>
       <Box className="menu-container">
-        {/* Category and Filter */}
         <Box className="category-list">
-          <CategoryList
-            categories={categories}
-            selectedCategory={selectedCategory}
-            onSelectCategory={setSelectedCategory}
-          />
+          {categories && (
+            <CategoryList
+              categories={categories}
+              selectedCategory={selectedCategory}
+              onSelectCategory={setSelectedCategory}
+            />
+          )}
         </Box>
 
-        {/* Product List */}
         <Box className="product-list">
-          <Box
-            sx={{
-              display: "flex",
-              marginBottom: "20px",
-            }}
-          >
+          <Box sx={{ display: "flex", marginBottom: "20px" }}>
             <Box sx={{ flex: 1, marginRight: "20px" }}>
               <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
             </Box>
@@ -133,25 +129,23 @@ const Home = () => {
           <Grid container spacing={3}>
             {sortedProducts.map((product) => (
               <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
-                <Products product={product} onAddToCart={handleAddToCart} />
+                <Products
+                  product={product}
+                  onAddToCart={handleAddToCart}
+                  showSnackbar={showSnackbar} // Truyền hàm xuống
+                />
               </Grid>
             ))}
           </Grid>
         </Box>
 
-        {/* Cart */}
         {isCartVisible && (
           <Box className="cart">
-            <Cart
-              cartItems={cartItems}
-              onCheckout={() => setCartItems([])}
-              // Các hàm xử lý trong giỏ hàng
-            />
+            <Cart cartItems={cartItems} onCheckout={() => setCartItems([])} />
           </Box>
         )}
       </Box>
 
-      {/* Floating Cart Button */}
       <Button
         variant="contained"
         color="primary"
@@ -174,6 +168,14 @@ const Home = () => {
           <ShoppingCartIcon />
         </Badge>
       </Button>
+
+      {/* Snackbar */}
+      {/* <SnackbarNotification
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={handleCloseSnackbar}
+      /> */}
     </Container>
   );
 };

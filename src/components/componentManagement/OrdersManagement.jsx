@@ -168,7 +168,7 @@ const OrdersManagement = () => {
                     color="error"
                     onClick={() => console.log(`Xóa: ${order.id}`)}
                   >
-                    Xóa
+                    Hủy bỏ
                   </Button>
                 </TableCell>
               </TableRow>

@@ -2,6 +2,7 @@ import React from "react";
 import { List, ListItem, ListItemText, Typography } from "@mui/material";
 
 const CategoryList = ({ categories, selectedCategory, onSelectCategory }) => {
+  console.log("hhhhhhhhhhhhhhhhhhhhhhhhhhhhh", categories);
   return (
     <div
       style={{
@@ -24,18 +25,23 @@ const CategoryList = ({ categories, selectedCategory, onSelectCategory }) => {
         Danh mục Sản phẩm
       </Typography>
       <List>
-        {categories.map((category) => (
+        {categories?.map((category) => (
           <ListItem
             button
             key={category.categoryId}
             onClick={() => onSelectCategory(category.name)}
             sx={{
               borderRadius: "8px",
-              "&:hover": {
-                backgroundColor: "#e3f2fd",
-              },
               backgroundColor:
                 selectedCategory === category.name ? "#1976D2" : "transparent",
+              pointerEvents:
+                selectedCategory === category.name ? "none" : "auto",
+              "&:hover": {
+                backgroundColor:
+                  selectedCategory === category.name
+                    ? "transparent"
+                    : "#e3f2fd",
+              },
             }}
           >
             <ListItemText

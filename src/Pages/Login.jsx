@@ -64,7 +64,7 @@ const Login = () => {
         <form onSubmit={handleSubmit}>
           <Box sx={{ textAlign: "center", marginBottom: 3 }}>
             <img
-              src="../../logo.png"
+              src="../../hopitallogo.png"
               alt="Logo"
               style={{
                 width: "120px",
@@ -134,6 +134,12 @@ const Login = () => {
               fontWeight: "bold",
               textTransform: "none",
               fontSize: "16px",
+              backgroundColor: "#67e4ff",
+
+              "&:hover": {
+                backgroundColor: "#45c8e6",
+                boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.2)",
+              },
             }}
           >
             Đăng nhập

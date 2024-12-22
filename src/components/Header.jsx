@@ -94,7 +94,7 @@ const Header = () => {
         }}
       >
         <Box display="flex" alignItems="center">
-          <img src="../../logo.png" alt="Logo" className="header-logo" />
+          <img src="../../hopitallogo.png" alt="Logo" className="header-logo" />
           <Typography
             variant="h6"
             className="header-typography"

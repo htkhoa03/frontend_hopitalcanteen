@@ -7,8 +7,26 @@ import {
   Button,
   Box,
 } from "@mui/material";
+import SnackbarNotification from "./SnackbarNotification";
 
 const Product = ({ product, onAddToCart }) => {
+  const [isOutOfStock, setIsOutOfStock] = React.useState(false);
+  const [successMessage, setSuccessMessage] = React.useState(false);
+
+  const handleAddToCart = () => {
+    if (product.stock?.quantity > 0) {
+      onAddToCart(product);
+      setSuccessMessage(true);
+    } else {
+      setIsOutOfStock(true);
+    }
+  };
+
+  const handleCloseSnackbar = () => {
+    setIsOutOfStock(false);
+    setSuccessMessage(false);
+  };
+
   return (
     <Card
       sx={{
@@ -56,10 +74,11 @@ const Product = ({ product, onAddToCart }) => {
           color="text.secondary"
           sx={{ marginBottom: "8px" }}
         >
-          Giá: {product.price} đ
+          Giá: {product.price.toLocaleString()} đ
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Số lượng: {product.stock?.quantity || 0}
+          Số lượng:{" "}
+          {product.stock?.quantity > 0 ? product.stock.quantity : "Hết hàng"}
         </Typography>
       </CardContent>
 
@@ -69,7 +88,8 @@ const Product = ({ product, onAddToCart }) => {
           size="large"
           variant="contained"
           color="primary"
-          onClick={() => onAddToCart(product)}
+          onClick={handleAddToCart}
+          disabled={product.stock?.quantity === 0}
           sx={{
             width: "100%",
             padding: "12px",
@@ -77,16 +97,32 @@ const Product = ({ product, onAddToCart }) => {
             fontWeight: "bold",
             textTransform: "none",
             borderRadius: "12px",
-            backgroundColor: "#2A95BF",
+            backgroundColor: product.stock?.quantity === 0 ? "#ddd" : "#2A95BF",
+            color: product.stock?.quantity === 0 ? "#888" : "#fff",
             boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
             "&:hover": {
-              backgroundColor: "#126DA6",
+              backgroundColor:
+                product.stock?.quantity === 0 ? "#ddd" : "#126DA6",
             },
           }}
         >
-          Thêm vào giỏ
+          {product.stock?.quantity === 0 ? "Hết hàng" : "Thêm vào giỏ"}
         </Button>
       </CardActions>
+
+      {/* Snackbar thông báo */}
+      <SnackbarNotification
+        open={isOutOfStock}
+        message="Sản phẩm đã hết hàng!"
+        severity="warning"
+        onClose={handleCloseSnackbar}
+      />
+      <SnackbarNotification
+        open={successMessage}
+        message="Đã thêm sản phẩm vào giỏ hàng!"
+        severity="success"
+        onClose={handleCloseSnackbar}
+      />
     </Card>
   );
 };

@@ -40,8 +40,8 @@ const ProductManagement = () => {
     name: "",
     price: "",
     unit: "",
-    stock: null,
-    category: "",
+    stock: { quantity: 0 },
+    category: null,
     images: [],
   });
   const [editProduct, setEditProduct] = useState(null);
@@ -90,7 +90,7 @@ const ProductManagement = () => {
     productData.append("name", newProduct.name);
     productData.append("price", newProduct.price);
     productData.append("unit", newProduct.unit);
-    productData.append("stock", newProduct.stock.quantity);
+    productData.append("stock", newProduct.stock?.quantity);
     productData.append("category", newProduct.category.name);
     newProduct.images.forEach((image) => productData.append("images", image));
 
@@ -120,7 +120,7 @@ const ProductManagement = () => {
     productData.append("name", editProduct.name);
     productData.append("price", editProduct.price);
     productData.append("unit", editProduct.unit);
-    productData.append("stock", editProduct.stock.quantity);
+    productData.append("quantity", editProduct.stock.quantity);
     productData.append("category", editProduct.category.name);
     if (editProduct.images) {
       editProduct.images.forEach((image) =>
@@ -269,7 +269,7 @@ const ProductManagement = () => {
                 <TableCell align="center">
                   {product.stock && product.stock.quantity !== undefined
                     ? product.stock.quantity
-                    : null}
+                    : 0}
                 </TableCell>
                 <TableCell align="center">{product.category.name}</TableCell>
                 <TableCell align="center">
@@ -351,7 +351,7 @@ const ProductManagement = () => {
             label="Số lượng tồn"
             fullWidth
             type="number"
-            value={newProduct?.stock?.quantity || null}
+            value={newProduct.stock.quantity}
             onChange={(e) => {
               setNewProduct({
                 ...newProduct,
@@ -435,7 +435,7 @@ const ProductManagement = () => {
             label="Số lượng tồn"
             fullWidth
             type="number"
-            value={editProduct?.stock?.quantity || null}
+            value={editProduct?.stock?.quantity}
             onChange={(e) => {
               setEditProduct({
                 ...editProduct,
