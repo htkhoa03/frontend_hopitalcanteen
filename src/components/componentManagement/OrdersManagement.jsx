@@ -16,7 +16,17 @@ import {
   DialogActions,
 } from "@mui/material";
 import { Print, Check, Delete } from "@mui/icons-material";
-import { jsPDF } from "jspdf";
+import {
+  Document,
+  Packer,
+  Paragraph,
+  TextRun,
+  Table as DocTable,
+  TableRow as DocTableRow,
+  TableCell as DocTableCell,
+  WidthType,
+} from "docx";
+import { saveAs } from "file-saver";
 
 const OrdersManagement = () => {
   const [orders, setOrders] = useState([]);
@@ -80,21 +90,91 @@ const OrdersManagement = () => {
   };
 
   // In hóa đơn ra file PDF
-  const handlePrintBill = () => {
-    const doc = new jsPDF();
-    doc.text(`Hóa đơn: ${selectedOrder.id}`, 10, 10);
-    doc.text(`Thời gian đặt hàng: ${selectedOrder.orderTime}`, 10, 20);
-    doc.text(`Tổng tiền: ${selectedOrder.total.toLocaleString()} Đ`, 10, 30);
-    selectedOrder.products.forEach((product, index) => {
-      doc.text(
-        `${index + 1}. ${product.name} - Số lượng: ${
-          product.quantity
-        } - Giá: ${product.price.toLocaleString()} Đ`,
-        10,
-        40 + index * 10
-      );
+  const handlePrintBill = async () => {
+    if (!selectedOrder) return;
+
+    // Tạo nội dung cho hóa đơn
+    const doc = new Document({
+      sections: [
+        {
+          properties: {
+            page: {
+              size: {
+                width: 80 * 20, // 80mm
+                height: 297 * 20, // A4 chiều cao
+              },
+            },
+          },
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: `Hóa đơn: ${selectedOrder.id}`,
+                  bold: true,
+                  size: 24,
+                }),
+              ],
+            }),
+            new Paragraph({
+              children: [
+                new TextRun(`Thời gian đặt hàng: ${selectedOrder.orderTime}`),
+              ],
+            }),
+            new Paragraph({
+              children: [
+                new TextRun(
+                  `Tổng tiền: ${selectedOrder.total.toLocaleString()} Đ`
+                ),
+              ],
+            }),
+            new DocTable({
+              width: { size: 100, type: WidthType.PERCENTAGE },
+              rows: [
+                new DocTableRow({
+                  children: [
+                    new DocTableCell({
+                      children: [new Paragraph("Sản phẩm")],
+                    }),
+                    new DocTableCell({
+                      children: [new Paragraph("Số lượng")],
+                    }),
+                    new DocTableCell({
+                      children: [new Paragraph("Giá")],
+                    }),
+                  ],
+                }),
+                ...selectedOrder.products.map(
+                  (product) =>
+                    new DocTableRow({
+                      children: [
+                        new DocTableCell({
+                          children: [new Paragraph(product.name)],
+                        }),
+                        new DocTableCell({
+                          children: [
+                            new Paragraph(product.quantity.toString()),
+                          ],
+                        }),
+                        new DocTableCell({
+                          children: [
+                            new Paragraph(
+                              product.price.toLocaleString() + " Đ"
+                            ),
+                          ],
+                        }),
+                      ],
+                    })
+                ),
+              ],
+            }),
+          ],
+        },
+      ],
     });
-    doc.save(`Hoa_don_${selectedOrder.id}.pdf`);
+
+    // Lưu file
+    const blob = await Packer.toBlob(doc);
+    saveAs(blob, `Hoa_don_${selectedOrder.id}.docx`);
   };
 
   return (

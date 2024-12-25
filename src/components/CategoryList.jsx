@@ -2,7 +2,6 @@ import React from "react";
 import { List, ListItem, ListItemText, Typography } from "@mui/material";
 
 const CategoryList = ({ categories, selectedCategory, onSelectCategory }) => {
-  console.log("hhhhhhhhhhhhhhhhhhhhhhhhhhhhh", categories);
   return (
     <div
       style={{

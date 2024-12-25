@@ -18,21 +18,30 @@ import {
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { getAllProductsService } from "../axios/productService";
 import { getAllCategoriesService } from "../axios/categoryService";
+import { getCartAPI, addToCartAPI } from "../axios/cartService";
+import axios from "../axios/axios";
+import { setCartId, setCartItems } from "../redux/cartSlice";
+import { useDispatch, useSelector } from "react-redux";
 
 const Home = () => {
   const [selectedCategory, setSelectedCategory] = useState("Tất cả");
-  const [cartItems, setCartItems] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState("asc");
   const [isCartVisible, setIsCartVisible] = useState(false);
   const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState(null);
+  const [categories, setCategories] = useState([]);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
     severity: "success",
   });
 
+  const dispatch = useDispatch();
+  const cartItems = useSelector((state) => state.cart?.items);
+  const cartId = useSelector((state) => state.cart?.cartId);
+
+
+  // Fetch API categories
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -46,6 +55,7 @@ const Home = () => {
     fetchCategories();
   }, []);
 
+  // Fetch API products
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -58,24 +68,66 @@ const Home = () => {
     fetchProducts();
   }, []);
 
-  const toggleCartVisibility = () => setIsCartVisible((prev) => !prev);
-
-  const handleAddToCart = (product) =>
-    setCartItems((prevItems) => {
-      const existingItem = prevItems.find((item) => item.id === product.id);
-      if (existingItem) {
-        return prevItems.map((item) =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
+  const fetchCart = async (cartId) => {
+    try {
+      const res = await getCartAPI(cartId);
+      // console.log('ressssssssss',res);
+      
+      if (res) {
+        dispatch(setCartItems(res.items));
+      } else {
+        console.error("Cart data is missing or invalid.");
       }
-      return [...prevItems, { ...product, quantity: 1 }];
-    });
-
-  const showSnackbar = (message, severity) => {
-    setSnackbar({ open: true, message, severity });
+    } catch (error) {
+      console.error("Error fetching cart items:", error);
+    }
   };
+
+  useEffect(() => {
+    // Fetch API patient and cart data
+    const fetchPatientData = async () => {
+      try {
+        const res = await axios.get("/patients/myinfo");
+        const patientData = res.data.data;
+
+        if (patientData.cart && patientData.cart.id) {
+          const cartId = patientData.cart.id;
+          dispatch(setCartId(cartId));
+          await fetchCart(cartId);
+        } else {
+          console.error("Cart ID is missing in patient data.");
+        }
+      } catch (error) {
+        console.error("Error fetching patient data:", error);
+      }
+    };
+    fetchPatientData();
+  }, []);
+
+  // Add product to cart
+  const addToCart = async (product) => {
+    try {
+      // const res = await axios.get("/patients/myinfo");
+      // const patientData = res.data.data;
+
+      await addToCartAPI(product.id, 1);
+      await fetchCart(cartId);
+      setSnackbar({
+        open: true,
+        message: "Thêm vào giỏ hàng thành công!",
+        severity: "success",
+      });
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      setSnackbar({
+        open: true,
+        message: "Không thể thêm sản phẩm vào giỏ hàng.",
+        severity: "error",
+      });
+    }
+  };
+
+  const toggleCartVisibility = () => setIsCartVisible((prev) => !prev);
 
   const filteredProducts =
     selectedCategory === "Tất cả"
@@ -92,7 +144,14 @@ const Home = () => {
     return sortOrder === "asc" ? a.price - b.price : b.price - a.price;
   });
 
-  const cartQuantity = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+  const cartQuantity = (cartItems || []).reduce(
+    (acc, item) => acc + item.quantity,
+    0
+  );
+
+  const handleCloseSnackbar = () => {
+    setSnackbar((prev) => ({ ...prev, open: false }));
+  };
 
   return (
     <Container style={{ marginTop: 50, padding: 0, maxWidth: 2000 }}>
@@ -131,8 +190,10 @@ const Home = () => {
               <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
                 <Products
                   product={product}
-                  onAddToCart={handleAddToCart}
-                  showSnackbar={showSnackbar} // Truyền hàm xuống
+                  addToCart={addToCart}
+                  showSnackbar={(msg, severity) =>
+                    setSnackbar({ open: true, message: msg, severity })
+                  }
                 />
               </Grid>
             ))}
@@ -141,7 +202,7 @@ const Home = () => {
 
         {isCartVisible && (
           <Box className="cart">
-            <Cart cartItems={cartItems} onCheckout={() => setCartItems([])} />
+            <Cart />
           </Box>
         )}
       </Box>
@@ -170,12 +231,12 @@ const Home = () => {
       </Button>
 
       {/* Snackbar */}
-      {/* <SnackbarNotification
+      <SnackbarNotification
         open={snackbar.open}
         message={snackbar.message}
         severity={snackbar.severity}
         onClose={handleCloseSnackbar}
-      /> */}
+      />
     </Container>
   );
 };

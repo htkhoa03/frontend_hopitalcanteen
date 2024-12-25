@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Card,
   CardContent,
@@ -9,17 +9,14 @@ import {
 } from "@mui/material";
 import SnackbarNotification from "./SnackbarNotification";
 
-const Product = ({ product, onAddToCart }) => {
-  const [isOutOfStock, setIsOutOfStock] = React.useState(false);
-  const [successMessage, setSuccessMessage] = React.useState(false);
+const Product = ({ product, addToCart }) => {
+  const [isOutOfStock, setIsOutOfStock] = useState(false);
+  const [successMessage, setSuccessMessage] = useState(false);
 
+  // Xử lý thêm sản phẩm
   const handleAddToCart = () => {
-    if (product.stock?.quantity > 0) {
-      onAddToCart(product);
-      setSuccessMessage(true);
-    } else {
-      setIsOutOfStock(true);
-    }
+    addToCart(product);
+    setSuccessMessage(true);
   };
 
   const handleCloseSnackbar = () => {
@@ -88,8 +85,8 @@ const Product = ({ product, onAddToCart }) => {
           size="large"
           variant="contained"
           color="primary"
-          onClick={handleAddToCart}
-          disabled={product.stock?.quantity === 0}
+          onClick={() => handleAddToCart(product)}
+          disabled={product.quantity === 0}
           sx={{
             width: "100%",
             padding: "12px",
