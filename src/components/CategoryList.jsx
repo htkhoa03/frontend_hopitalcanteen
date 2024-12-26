@@ -9,6 +9,7 @@ const CategoryList = ({ categories, selectedCategory, onSelectCategory }) => {
         backgroundColor: "white",
         borderRadius: "8px",
         position: "fixed",
+        maxWidth:"200px"
       }}
     >
       <Typography

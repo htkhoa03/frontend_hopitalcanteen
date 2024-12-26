@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -14,11 +14,25 @@ import {
 } from "@mui/material";
 import { Edit, Delete } from "@mui/icons-material";
 import * as XLSX from "xlsx";
-import { employees } from "../../utils/data";
+import { getAllUsers } from "../../axios/userService";
+
 
 const EmployeeManagement = () => {
+
+  const [users, setUsers] = useState(null);
+    useEffect(() => {
+      const fetchPatients = async () => {
+        try {
+          const res = await getAllUsers();
+          setUsers(res);
+        } catch (error) {
+          console.error("Error fetching users:", error);
+        }
+      };
+      fetchPatients();
+    }, []);
   const exportToExcel = () => {
-    const ws = XLSX.utils.json_to_sheet(employees);
+    const ws = XLSX.utils.json_to_sheet(users);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Nhân viên");
     XLSX.writeFile(wb, "Danh_sach_nhan_vien.xlsx");
@@ -57,7 +71,7 @@ const EmployeeManagement = () => {
         <Button
           variant="contained"
           sx={{ backgroundColor: "#1976d2", color: "#fff" }}
-          onClick={exportToExcel}
+          // onClick={exportToExcel}
         >
           Xuất file Excel
         </Button>
@@ -78,7 +92,7 @@ const EmployeeManagement = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {employees.map((employee) => (
+            {users?.map((employee) => (
               <TableRow key={employee.id}>
                 <TableCell align="center">{employee.name}</TableCell>
                 <TableCell align="center">{employee.role}</TableCell>

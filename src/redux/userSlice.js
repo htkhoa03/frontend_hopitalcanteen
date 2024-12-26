@@ -1,87 +1,68 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { dataUser, employees } from "../utils/data";
-
-const initialState = {
-  login: false,
-  username: null,
-  role: null,
-  phone: null,
-  department: null,
-  room: null,
-  balance: null,
-  customerCode: null,
-  name: null,
-};
+import axios from "axios";
 
 const userSlice = createSlice({
   name: "user",
-  initialState,
+  initialState: {
+    info: null,
+    loading: false,
+    error: null,
+    userId:null,
+  },
   reducers: {
-    loginWithUsername: (state, action) => {
-      const { username, password } = action.payload;
-      const user = employees.find(
-        (emp) => emp.username === username && emp.password === password
-      );
-
-      if (user) {
-        Object.assign(state, {
-          login: true,
-          username: user.username,
-          role: user.role,
-          phone: user.phone,
-          department: user.department,
-          name: user.name,
-          room: null,
-          balance: null,
-          customerCode: null,
-        });
-      } else {
-        console.error("Invalid username or password.");
-        state.login = false;
-      }
+    setLoading(state, action) {
+      state.loading = action.payload;
     },
-
-    loginWithCustomerCode: (state, action) => {
-      const { customerCode } = action.payload;
-      const customer = dataUser.find(
-        (cust) => cust.customerCode === customerCode
-      );
-
-      if (customer) {
-        Object.assign(state, {
-          login: true,
-          customerCode: customer.customerCode,
-          role: null,
-          phone: customer.phone,
-          room: customer.room,
-          balance: customer.balance,
-          name: customer.name,
-          username: null,
-        });
-      } else {
-        console.error("Customer code not found");
-        state.login = false;
-      }
+    setUserInfo(state, action) {
+      state.info = action.payload;
+      state.error = null;
     },
-
-    logout: (state) => {
-      Object.assign(state, {
-        login: false,
-        username: null,
-        role: null,
-        phone: null,
-        room: null,
-        balance: null,
-        customerCode: null,
-        name: null,
-      });
+    setError(state, action) {
+      state.error = action.payload;
     },
   },
 });
 
-export const { loginWithUsername, loginWithCustomerCode, logout } =
-  userSlice.actions;
+export const { setLoading, setUserInfo, setError } = userSlice.actions;
 
-export const selectUser = (state) => state.user;
+// Async actions
+export const fetchMyInfo = () => async (dispatch) => {
+  dispatch(setLoading(true));
+  try {
+    const response = await axios.get("/users/my-info");
+    dispatch(setUserInfo(response.data.data));
+  } catch (error) {
+    dispatch(setError(error.message));
+  } finally {
+    dispatch(setLoading(false));
+  }
+};
+
+export const createUser = (userData) => async (dispatch) => {
+  dispatch(setLoading(true));
+  try {
+    await axios.post("/users/create-user", userData);
+    alert("User created successfully!");
+  } catch (error) {
+    dispatch(setError(error.message));
+  } finally {
+    dispatch(setLoading(false));
+  }
+};
+
+export const updateUser = (id, userData) => async (dispatch) => {
+  dispatch(setLoading(true));
+  try {
+    await axios.put(`/users/${id}/update-user`, userData);
+    alert("User updated successfully!");
+  } catch (error) {
+    dispatch(setError(error.message));
+  } finally {
+    dispatch(setLoading(false));
+  }
+};
+
+export const selectUserInfo = (state) => state.user.info;
+export const selectLoading = (state) => state.user.loading;
 
 export default userSlice.reducer;

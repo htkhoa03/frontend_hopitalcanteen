@@ -1,5 +1,6 @@
-import React, { useState, } from "react";
+import React, { useState } from "react";
 import {
+  clearCartAPI,
   getCartAPI,
   removeFromCartAPI,
 } from "../axios/cartService";
@@ -14,12 +15,14 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Divider,
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import {
   setCartItems,
   setTotalAmount,
   removeCartItems,
+  clearCart,
 } from "../redux/cartSlice";
 
 const Cart = () => {
@@ -37,7 +40,7 @@ const Cart = () => {
     try {
       const res = await getCartAPI(cartId);
       const data = res;
-      console.log("dataaaaaaa", data);
+      console.log("ress",res)
 
       if (data) {
         dispatch(setCartItems(data.items || []));
@@ -60,6 +63,17 @@ const Cart = () => {
     } catch (error) {
       console.error("Error removing product:", error);
       alert("Không thể xóa sản phẩm.");
+    }
+  };
+  // xóa toàn bộ sản phẩm
+  const handleClearAllCart = async () => {
+    try {
+      await clearCartAPI(cartId);
+      dispatch(clearCart(cartId));
+      // dispatch(setTotalAmount(totalAmount === 0));
+      await fetchCartData();
+    } catch (error) {
+      console.log("Error clear cart: ", error);
     }
   };
 
@@ -93,50 +107,131 @@ const Cart = () => {
 
   return (
     <Box
+    sx={{
+      width: "93%",
+      maxWidth: "400px",
+      padding: "20px",
+      borderRadius: "12px",
+      boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
+      backgroundColor: "#fff",
+      position: "relative",
+      margin: "10px auto", // Center on smaller screens
+    }}
+  >
+    <Typography
+      variant="h5"
       sx={{
-        position: "fixed",
-        top: "10%",
-        right: "5%",
-        width: "300px",
-        padding: "20px",
-        border: "1px solid #ddd",
-        borderRadius: "8px",
-        backgroundColor: "#fff",
+        fontWeight: "bold",
+        textAlign: "center",
+        mb: 2,
+        color: "#1976d2",
       }}
     >
-      <Typography variant="h5">Giỏ hàng của bạn</Typography>
-      <List>
-        {(cartItems || []).map((item) => (
-          <ListItem key={item?.id}>
-            <ListItemText
-              primary={item?.product?.name}
-              secondary={`Giá: ${item?.unitPrice?.toLocaleString()} VND - Số lượng: ${
-                item?.quantity
-              }`}
-            />
-            <Button
-              onClick={() => handleRemoveFromCartItems(item.id)}
-              variant="outlined"
-              color="error"
+      Giỏ hàng của bạn
+    </Typography>
+
+    <Divider sx={{ mb: 2 }} />
+
+    <List>
+      {(cartItems || []).map((item) => (
+        <ListItem
+          key={item?.id}
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 1,
+            padding: "10px 15px",
+            borderRadius: "8px",
+            backgroundColor: "#f9f9f9",
+            boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.05)",
+          }}
+        >
+          <Box>
+            <Typography
+              variant="subtitle1"
+              sx={{ fontWeight: "bold", color: "#333" }}
             >
-              Xóa
-            </Button>
-          </ListItem>
-        ))}
-      </List>
+              {item?.product?.name}
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{ color: "#555", mt: 0.5 }}
+            >
+              Giá: {item?.unitPrice?.toLocaleString()} VND
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{ color: "#555", mt: 0.5 }}
+            >
+              Số lượng: {item?.quantity}
+            </Typography>
+          </Box>
+          <Button
+            onClick={() => handleRemoveFromCartItems(item.id)}
+            variant="contained"
+            color="error"
+            sx={{
+              minWidth: "80px",
+              fontSize: "0.875rem",
+              fontWeight: "bold",
+            }}
+          >
+            Xóa
+          </Button>
+        </ListItem>
+      ))}
+    </List>
 
-      <Typography variant="h6" sx={{ marginTop: "20px" }}>
-        Tổng tiền: {totalAmount.toLocaleString()} VND
-      </Typography>
+    <Divider sx={{ my: 2 }} />
 
+    <Typography
+      variant="h6"
+      sx={{
+        fontWeight: "bold",
+        textAlign: "right",
+        mb: 2,
+        color: "#1976d2",
+      }}
+    >
+      Tổng tiền:{" "}
+      <span style={{ color: "#e53935" }}>
+        {totalAmount.toLocaleString()} VND
+      </span>
+    </Typography>
+
+    <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}>
+      <Button
+        variant="outlined"
+        color="error"
+        onClick={handleClearAllCart}
+        sx={{
+          flex: 1,
+          fontWeight: "bold",
+          borderColor: "#e53935",
+          color: "#e53935",
+          "&:hover": {
+            backgroundColor: "#ffe5e5",
+          },
+        }}
+      >
+        Xóa toàn bộ
+      </Button>
       <Button
         variant="contained"
         onClick={handleCheckoutClick}
-        // disabled={cartItems.length === 0 || patientBalance < totalAmount}
-        sx={{ marginTop: "10px" }}
+        sx={{
+          flex: 1,
+          fontWeight: "bold",
+          backgroundColor: "#43a047",
+          "&:hover": {
+            backgroundColor: "#388e3c",
+          },
+        }}
       >
-        Thanh toán
+        Mua
       </Button>
+    </Box>
 
       {/* Dialogs */}
       <Dialog open={isDialogOpen} onClose={handleCloseDialog}>

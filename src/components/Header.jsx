@@ -7,77 +7,70 @@ import {
   Tab,
   Button,
   Box,
+  CircularProgress,
 } from "@mui/material";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import axios from "../axios/axios";
 import "./componentStyles/Header.css";
+import { selectPatient } from "../redux/patientSlice";
+import { useSelector } from "react-redux";
 
 const Header = () => {
   const [displayName, setDisplayName] = useState(null);
-  const [login, setLogin] = useState(false);
+  const [loginType, setLoginType] = useState(null); // Đăng nhập qua user hay patient
   const [loading, setLoading] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
 
-  const tabValue = (() => {
-    if (displayName?.startsWith("BN-")) {
-      return location.pathname === "/home" ? 0 : false;
-    }
-    return location.pathname === "/management/management-home" ? 0 : false;
-  })();
 
+  const patientInfo = useSelector(selectPatient);
+  const { cardNumber, patientId } = patientInfo;
+
+
+  const tabValue = location.pathname === "/home" ? 0 : location.pathname.includes("management/management-home") ? 0 : false;
+
+  // Fetch thông tin người dùng
   useEffect(() => {
     const fetchUserData = async () => {
+      setLoading(true);
       try {
-        const token = localStorage.getItem("accessToken");
-        if (token) {
-          // Decode token hoặc gọi API để lấy vai trò người dùng
-          const roleResponse = await axios.get("/auth/role", {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          const { role } = roleResponse.data;
+       if(cardNumber){
+          const patientRes = await axios.get("/patients/my-info");
+          const { fullName } = patientRes.data.data;
+          setDisplayName(`BN-${fullName}`);
+          setLoginType("PATIENT");
+       }else{
 
-          let res;
-          if (role === "PATIENT") {
-            res = await axios.get("/patients/myinfo", {
-              headers: { Authorization: `Bearer ${token}` },
-            });
-          } else if (role === "USER") {
-            res = await axios.get("/myinfo", {
-              headers: { Authorization: `Bearer ${token}` },
-            });
-          } else {
-            throw new Error("Role không hợp lệ");
-          }
-
-          // Xử lý dữ liệu người dùng
-          const { username, cardNumber } = res.data;
-          if (username) {
-            setDisplayName(username);
-          } else if (cardNumber) {
-            setDisplayName(`BN-${cardNumber}`);
-          }
-          setLogin(true);
-        }
+          // Kiểm tra User thông qua API
+          const userRes = await axios.get("/users/my-info");
+          const { username } = userRes.data.data;
+          setDisplayName(username);
+          setLoginType("USER");
+       }
+        
       } catch (error) {
         console.error("Không thể lấy thông tin người dùng:", error);
-        setLogin(false);
+        // localStorage.removeItem("accessToken"); 
+        setDisplayName(null);
+        setLoginType(null);
       } finally {
         setLoading(false);
       }
     };
 
     fetchUserData();
-  }, []);
+  }, [cardNumber]);
 
+  // Xử lý nhấn nút tài khoản
   const handleAccountClick = () => {
-    if (displayName?.startsWith("BN-")) {
+    if (loginType === "PATIENT") {
       navigate("/patient");
-    } else {
+    } else if (loginType === "USER") {
       navigate("/user");
     }
   };
 
+  // Xử lý nhấn nút đăng nhập
   const handleLoginClick = () => {
     navigate("/");
   };
@@ -93,6 +86,7 @@ const Header = () => {
           backgroundColor: "#345DA7",
         }}
       >
+        {/* Logo và tiêu đề */}
         <Box display="flex" alignItems="center">
           <img src="../../hopitallogo.png" alt="Logo" className="header-logo" />
           <Typography
@@ -104,6 +98,7 @@ const Header = () => {
           </Typography>
         </Box>
 
+        {/* Tabs và nút */}
         <Box display="flex" alignItems="center">
           <Tabs
             value={tabValue}
@@ -111,36 +106,21 @@ const Header = () => {
             indicatorColor="secondary"
             className="header-tabs"
           >
-            {displayName?.startsWith("BN-") ? (
-              <Tab
-                component={Link}
-                to="/home"
-                aria-label="home"
-                label="Trang chủ"
-              />
-            ) : (
-              <Tab
-                component={Link}
-                to="/management/management-home"
-                aria-label="management"
-                label="Quản lý"
-              />
-            )}
+            {loginType === "PATIENT" ? (
+              <Tab component={Link} to="/home" label="Trang chủ" />
+            ) : loginType === "USER" ? (
+              <Tab component={Link} to="/management/management-home" label="Quản lý" />
+            ) : null}
           </Tabs>
           {loading ? (
-            <Typography variant="body2" style={{ marginLeft: "16px" }}>
-              Đang tải...
-            </Typography>
-          ) : login ? (
+            <CircularProgress size={24} style={{ marginLeft: "16px" }} />
+          ) : displayName ? (
             <Box display="flex" alignItems="center">
               <Typography variant="body1" style={{ marginRight: "8px" }}>
-                {displayName.startsWith("BN-")
-                  ? "Xin chào, Bệnh nhân"
-                  : "Xin chào,"}
+                {loginType === "PATIENT" ? "Xin chào, Bệnh nhân" : "Xin chào,"}
               </Typography>
               <Button
                 color="inherit"
-                className="header-account-btn"
                 variant="contained"
                 onClick={handleAccountClick}
                 sx={{
@@ -155,7 +135,6 @@ const Header = () => {
           ) : (
             <Button
               color="inherit"
-              className="header-login-btn"
               variant="contained"
               onClick={handleLoginClick}
               sx={{

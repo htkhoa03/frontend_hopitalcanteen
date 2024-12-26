@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Container,
@@ -20,6 +20,9 @@ import {
 } from "@mui/material";
 import { styled } from "@mui/system";
 import { Edit, Delete, Visibility, PersonAdd } from "@mui/icons-material";
+import { getAllPatients, getAllPatientService} from "../../axios/patientService";
+
+
 
 const StyledModal = styled(Modal)(({ theme }) => ({
   display: "flex",
@@ -38,65 +41,68 @@ const ModalContent = styled(Box)(({ theme }) => ({
 }));
 
 const PatientManagement = () => {
-  const [patients, setPatients] = useState([
-    {
-      id: "P001",
-      name: "John Doe",
-      age: 35,
-      contact: "+1 234-567-8901",
-      medicalHistory: "Hypertension, Diabetes",
-      additionalNotes: "Regular checkup required",
-    },
-    {
-      id: "P002",
-      name: "Jane Smith",
-      age: 28,
-      contact: "+1 234-567-8902",
-      medicalHistory: "Asthma",
-      additionalNotes: "Allergic to penicillin",
-    },
-  ]);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState(null);
+  const [patients, setPatients] = useState([]);
   const [newPatient, setNewPatient] = useState({
     name: "",
     age: "",
     contact: "",
     additionalNotes: "",
   });
-
+  
+  // Fetch API patient
+  useEffect(() => {
+    const fetchPatients = async () => {
+      try {
+        const res = await getAllPatientService();
+        setPatients(res);
+        console.log("bệnh nhân",res)
+      } catch (error) {
+        console.error("Error fetching patients:", error);
+      }
+    };
+    fetchPatients();
+  }, []);
   const handleAddPatient = () => {
-    if (!newPatient.name || !newPatient.age || !newPatient.contact) return;
+    // if (!newPatient.name || !newPatient.age || !newPatient.contact) return;
 
-    const patient = {
-      id: `P${String(patients.length + 1).padStart(3, "0")}`,
-      ...newPatient,
-      medicalHistory: "",
+    // const patient = {
+    //   id: `P${String(patients.length + 1).padStart(3, "0")}`,
+    //   ...newPatient,
+    //   medicalHistory: "",
     };
 
-    setPatients([...patients, patient]);
-    setNewPatient({ name: "", age: "", contact: "", additionalNotes: "" });
-    setIsAddModalOpen(false);
-  };
+  //   setPatients([...patients, patient]);
+  //   setNewPatient({ name: "", age: "", contact: "", additionalNotes: "" });
+  //   setIsAddModalOpen(false);
+  // };
 
-  const handleDeletePatient = (id) => {
-    setPatients(patients.filter((patient) => patient.id !== id));
-  };
+  // const handleDeletePatient = (id) => {
+  //   setPatients(patients.filter((patient) => patient.id !== id));
+  // };
 
+  // const handleViewPatient = (patient) => {
+  //   setSelectedPatient(patient);
+  //   setIsViewModalOpen(true);
+  // };
+
+  // const filteredPatients = patients.filter(
+  //   (patient) =>
+  //     patient.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  //     patient.contact.includes(searchQuery)
+  // );
   const handleViewPatient = (patient) => {
-    setSelectedPatient(patient);
-    setIsViewModalOpen(true);
+    setSelectedPatient(patient); // Cập nhật thông tin bệnh nhân được chọn
+    setIsViewModalOpen(true); // Mở modal hiển thị chi tiết
   };
-
-  const filteredPatients = patients.filter(
-    (patient) =>
-      patient.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      patient.contact.includes(searchQuery)
-  );
-
+  
+  if (!patients) {
+    return <Typography>Loading...</Typography>;
+  }
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Box
@@ -109,14 +115,14 @@ const PatientManagement = () => {
         }}
       >
         <Typography variant="h4" component="h1" sx={{ color: "primary.main" }}>
-          Patient Management
+          Quản lí bệnh nhân
         </Typography>
         <Button
           variant="contained"
           startIcon={<PersonAdd />}
           onClick={() => setIsAddModalOpen(true)}
         >
-          Add New Patient
+          Thêm bệnh nhân
         </Button>
       </Box>
 
@@ -135,18 +141,18 @@ const PatientManagement = () => {
             <TableRow sx={{ backgroundColor: "primary.main" }}>
               <TableCell sx={{ color: "white" }}>Mã bệnh nhân</TableCell>
               <TableCell sx={{ color: "white" }}>Tên bệnh nhân</TableCell>
-              <TableCell sx={{ color: "white" }}>Tuổi</TableCell>
+              <TableCell sx={{ color: "white" }}>Email</TableCell>
               <TableCell sx={{ color: "white" }}>Số điện thoại</TableCell>
               <TableCell sx={{ color: "white" }}>Hành động</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredPatients.map((patient) => (
-              <TableRow key={patient.id}>
-                <TableCell>{patient.id}</TableCell>
-                <TableCell>{patient.name}</TableCell>
-                <TableCell>{patient.age}</TableCell>
-                <TableCell>{patient.contact}</TableCell>
+            {patients.map((patient) => (
+              <TableRow key={patient.patientId}>
+                <TableCell>{patient.cardNumber}</TableCell>
+                <TableCell>{patient.fullName}</TableCell>
+                <TableCell>{patient.email}</TableCell>
+                <TableCell>{patient.phoneNumber}</TableCell>
                 <TableCell>
                   <IconButton
                     onClick={() => handleViewPatient(patient)}
@@ -158,7 +164,7 @@ const PatientManagement = () => {
                     <Edit />
                   </IconButton>
                   <IconButton
-                    onClick={() => handleDeletePatient(patient.id)}
+                    // onClick={() => handleDeletePatient(patient.id)}
                     color="error"
                   >
                     <Delete />
@@ -255,28 +261,28 @@ const PatientManagement = () => {
                 </Typography>
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6}>
-                    <Typography variant="subtitle2">Patient ID</Typography>
-                    <Typography>{selectedPatient.id}</Typography>
+                    <Typography variant="subtitle2">Mã bệnh nhân</Typography>
+                    <Typography>{selectedPatient.cardNumber}</Typography>
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                    <Typography variant="subtitle2">Name</Typography>
-                    <Typography>{selectedPatient.name}</Typography>
+                    <Typography variant="subtitle2">tên bệnh nhân</Typography>
+                    <Typography>{selectedPatient.fullName}</Typography>
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                    <Typography variant="subtitle2">Age</Typography>
+                    <Typography variant="subtitle2">Ngày sinh</Typography>
                     <Typography>{selectedPatient.age}</Typography>
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                    <Typography variant="subtitle2">Contact</Typography>
-                    <Typography>{selectedPatient.contact}</Typography>
+                    <Typography variant="subtitle2">Số điện thoại</Typography>
+                    <Typography>{selectedPatient.phoneNumber}</Typography>
                   </Grid>
                   <Grid item xs={12}>
-                    <Typography variant="subtitle2">Balance</Typography>
+                    <Typography variant="subtitle2">Tài khoản</Typography>
                     <Typography>100000</Typography>
                   </Grid>
                   <Grid item xs={12}>
-                    <Typography variant="subtitle2">Medical History</Typography>
-                    <Typography>{selectedPatient.medicalHistory}</Typography>
+                    <Typography variant="subtitle2">Địa chỉ</Typography>
+                    <Typography>{selectedPatient.address}</Typography>
                   </Grid>
                   <Grid item xs={12}>
                     <Typography variant="subtitle2">

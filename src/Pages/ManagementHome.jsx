@@ -14,27 +14,27 @@ import {
   Card,
   CardContent,
 } from "@mui/material";
-import { salesData } from "../utils/data";
+
 import AccountingManagement from "../components/componentManagement/AccountingManagement";
 
 const ManagementHome = () => {
   const [timeFrame, setTimeFrame] = useState("today");
   const [productsSold, setProductsSold] = useState(
-    salesData.today.productsSold
-  );
-  const [ordersPlaced, setOrdersPlaced] = useState(
-    salesData.today.ordersPlaced
-  );
-  const [totalRevenue, setTotalRevenue] = useState(
-    salesData.today.totalRevenue
+  //   salesData.today.productsSold
+  // );
+  // const [ordersPlaced, setOrdersPlaced] = useState(
+  //   salesData.today.ordersPlaced
+  // );
+  // const [totalRevenue, setTotalRevenue] = useState(
+  //   salesData.today.totalRevenue
   );
 
   const handleTimeFrameChange = (event) => {
-    const selectedTimeFrame = event.target.value;
-    setTimeFrame(selectedTimeFrame);
-    setProductsSold(salesData[selectedTimeFrame].productsSold);
-    setOrdersPlaced(salesData[selectedTimeFrame].ordersPlaced);
-    setTotalRevenue(salesData[selectedTimeFrame].totalRevenue);
+    // const selectedTimeFrame = event.target.value;
+    // setTimeFrame(selectedTimeFrame);
+    // setProductsSold(salesData[selectedTimeFrame].productsSold);
+    // setOrdersPlaced(salesData[selectedTimeFrame].ordersPlaced);
+    // setTotalRevenue(salesData[selectedTimeFrame].totalRevenue);
   };
 
   return (
@@ -151,7 +151,7 @@ const ManagementHome = () => {
                   variant="h4"
                   sx={{ fontWeight: "bold", color: "#d97706" }}
                 >
-                  {ordersPlaced}
+                  {/* {ordersPlaced} */}
                 </Typography>
               </Box>
             </CardContent>
@@ -197,7 +197,7 @@ const ManagementHome = () => {
                   variant="h4"
                   sx={{ fontWeight: "bold", color: "#16a34a" }}
                 >
-                  {totalRevenue.toLocaleString()} Đ
+                  {/* {totalRevenue.toLocaleString()} Đ */}
                 </Typography>
               </Box>
             </CardContent>

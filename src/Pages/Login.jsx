@@ -27,7 +27,9 @@ const Login = () => {
         res = await handleLogin({ cardNumber });
         const { accessToken } = res.data;
         localStorage.setItem("accessToken", accessToken);
+        
         navigate("/home", { replace: true });
+        console.log(accessToken)
       } else {
         res = await handleLogin({ username, password });
         const { accessToken } = res.data;

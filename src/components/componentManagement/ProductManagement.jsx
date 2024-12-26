@@ -53,7 +53,7 @@ const ProductManagement = () => {
   const fetchProducts = async () => {
     try {
       const res = await getAllProductsService();
-      setProducts(res.data.data);
+      setProducts(res.data.data.content);
     } catch (error) {
       console.error("Error fetching products:", error);
     }
@@ -90,7 +90,7 @@ const ProductManagement = () => {
     productData.append("name", newProduct.name);
     productData.append("price", newProduct.price);
     productData.append("unit", newProduct.unit);
-    productData.append("stock", newProduct.stock?.quantity);
+    productData.append("quantity", newProduct.stock?.quantity);
     productData.append("category", newProduct.category.name);
     newProduct.images.forEach((image) => productData.append("images", image));
 
@@ -120,7 +120,7 @@ const ProductManagement = () => {
     productData.append("name", editProduct.name);
     productData.append("price", editProduct.price);
     productData.append("unit", editProduct.unit);
-    productData.append("quantity", editProduct.stock.quantity);
+    productData.append("stock", editProduct.stock?.quantity);
     productData.append("category", editProduct.category.name);
     if (editProduct.images) {
       editProduct.images.forEach((image) =>

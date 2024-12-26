@@ -14,9 +14,10 @@ import {
   Grid,
   Button,
   Badge,
+  Pagination,
 } from "@mui/material";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import { getAllProductsService } from "../axios/productService";
+import { getAllProductsService, getProductsByCategoryService } from "../axios/productService";
 import { getAllCategoriesService } from "../axios/categoryService";
 import { getCartAPI, addToCartAPI } from "../axios/cartService";
 import axios from "../axios/axios";
@@ -35,11 +36,12 @@ const Home = () => {
     message: "",
     severity: "success",
   });
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart?.items);
   const cartId = useSelector((state) => state.cart?.cartId);
-
 
   // Fetch API categories
   useEffect(() => {
@@ -55,24 +57,30 @@ const Home = () => {
     fetchCategories();
   }, []);
 
-  // Fetch API products
+
+   const fetchProductsByCategory = async () => {
+    try {
+      const category = selectedCategory === "Tất cả" ? null : selectedCategory;
+      const res = category
+        ? await getProductsByCategoryService(category, page - 1, 12, "price", sortOrder)
+        : await getAllProductsService({ page: page - 1, size: 12, sortBy: "price", sortDirection: sortOrder });
+
+      setProducts(res.data.data.content);
+      setTotalPages(res.data.data.totalPages);
+    } catch (error) {
+      console.error("Error fetching products by category:", error);
+    }
+  };
+
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const res = await getAllProductsService();
-        setProducts(res.data.data);
-      } catch (error) {
-        console.error("Error fetching products:", error);
-      }
-    };
-    fetchProducts();
-  }, []);
+    fetchProductsByCategory();
+  }, [selectedCategory, page, sortOrder]);
+
 
   const fetchCart = async (cartId) => {
     try {
       const res = await getCartAPI(cartId);
-      // console.log('ressssssssss',res);
-      
+
       if (res) {
         dispatch(setCartItems(res.items));
       } else {
@@ -84,10 +92,9 @@ const Home = () => {
   };
 
   useEffect(() => {
-    // Fetch API patient and cart data
     const fetchPatientData = async () => {
       try {
-        const res = await axios.get("/patients/myinfo");
+        const res = await axios.get("/patients/my-info");
         const patientData = res.data.data;
 
         if (patientData.cart && patientData.cart.id) {
@@ -104,12 +111,8 @@ const Home = () => {
     fetchPatientData();
   }, []);
 
-  // Add product to cart
   const addToCart = async (product) => {
     try {
-      // const res = await axios.get("/patients/myinfo");
-      // const patientData = res.data.data;
-
       await addToCartAPI(product.id, 1);
       await fetchCart(cartId);
       setSnackbar({
@@ -129,28 +132,12 @@ const Home = () => {
 
   const toggleCartVisibility = () => setIsCartVisible((prev) => !prev);
 
-  const filteredProducts =
-    selectedCategory === "Tất cả"
-      ? products.filter((product) =>
-          product.name?.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      : products.filter(
-          (product) =>
-            product.category?.name === selectedCategory &&
-            product.name?.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
-    return sortOrder === "asc" ? a.price - b.price : b.price - a.price;
-  });
-
-  const cartQuantity = (cartItems || []).reduce(
-    (acc, item) => acc + item.quantity,
-    0
-  );
-
   const handleCloseSnackbar = () => {
     setSnackbar((prev) => ({ ...prev, open: false }));
+  };
+
+  const handlePageChange = ( value) => {
+    setPage(value);
   };
 
   return (
@@ -186,18 +173,26 @@ const Home = () => {
           </Box>
 
           <Grid container spacing={3}>
-            {sortedProducts.map((product) => (
+            {products.map((product) => (
               <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
                 <Products
                   product={product}
                   addToCart={addToCart}
-                  showSnackbar={(msg, severity) =>
-                    setSnackbar({ open: true, message: msg, severity })
-                  }
+                  // showSnackbar={(msg, severity) =>
+                  //   setSnackbar({ open: true, message: msg, severity })
+                  // }
                 />
               </Grid>
             ))}
           </Grid>
+
+          <Pagination
+            count={totalPages}
+            page={page}
+            onChange={(_, value) => handlePageChange(value)}
+            color="primary"
+            sx={{ marginTop: "20px", display: "flex", justifyContent: "center" }}
+          />
         </Box>
 
         {isCartVisible && (
@@ -222,7 +217,7 @@ const Home = () => {
         }}
       >
         <Badge
-          badgeContent={cartQuantity}
+          badgeContent={cartItems?.reduce((acc, item) => acc + item.quantity, 0) || 0}
           color="error"
           sx={{ fontSize: "14px" }}
         >
@@ -230,7 +225,6 @@ const Home = () => {
         </Badge>
       </Button>
 
-      {/* Snackbar */}
       <SnackbarNotification
         open={snackbar.open}
         message={snackbar.message}
