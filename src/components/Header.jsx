@@ -50,7 +50,7 @@ const Header = () => {
         
       } catch (error) {
         console.error("Không thể lấy thông tin người dùng:", error);
-        // localStorage.removeItem("accessToken"); 
+        localStorage.removeItem("accessToken"); 
         setDisplayName(null);
         setLoginType(null);
       } finally {
