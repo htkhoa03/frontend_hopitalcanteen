@@ -136,7 +136,7 @@ const CategoryManagement = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {categories.map((category) => (
+            {categories?.map((category) => (
               <TableRow key={category.categoryId}>
                 <TableCell align="center">{category.categoryId}</TableCell>
                 <TableCell align="center">{category.name}</TableCell>

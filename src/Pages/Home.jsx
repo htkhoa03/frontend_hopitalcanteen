@@ -17,12 +17,16 @@ import {
   Pagination,
 } from "@mui/material";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import { getAllProductsService, getProductsByCategoryService } from "../axios/productService";
+import {
+  getAllProductsService,
+  getProductsByCategoryService,
+} from "../axios/productService";
 import { getAllCategoriesService } from "../axios/categoryService";
 import { getCartAPI, addToCartAPI } from "../axios/cartService";
 import axios from "../axios/axios";
-import { setCartId, setCartItems } from "../redux/cartSlice";
+import { setCartId, setCartItems, setTotalAmount } from "../redux/cartSlice";
 import { useDispatch, useSelector } from "react-redux";
+import { fetchPatient } from "../redux/patientsSlice";
 
 const Home = () => {
   const [selectedCategory, setSelectedCategory] = useState("Tất cả");
@@ -57,25 +61,35 @@ const Home = () => {
     fetchCategories();
   }, []);
 
-
-   const fetchProductsByCategory = async () => {
-    try {
-      const category = selectedCategory === "Tất cả" ? null : selectedCategory;
-      const res = category
-        ? await getProductsByCategoryService(category, page - 1, 12, "price", sortOrder)
-        : await getAllProductsService({ page: page - 1, size: 12, sortBy: "price", sortDirection: sortOrder });
-
-      setProducts(res.data.data.content);
-      setTotalPages(res.data.data.totalPages);
-    } catch (error) {
-      console.error("Error fetching products by category:", error);
-    }
-  };
-
   useEffect(() => {
+    const fetchProductsByCategory = async () => {
+      try {
+        const category =
+          selectedCategory === "Tất cả" ? null : selectedCategory;
+        const res = category
+          ? await getProductsByCategoryService(
+              category,
+              page - 1,
+              12,
+              "price",
+              sortOrder
+            )
+          : await getAllProductsService({
+              page: page - 1,
+              size: 12,
+              sortBy: "price",
+              sortDirection: sortOrder,
+            });
+
+        setProducts(res.data.data.content);
+        setTotalPages(res.data.data.totalPages);
+      } catch (error) {
+        console.error("Error fetching products by category:", error);
+      }
+    };
+
     fetchProductsByCategory();
   }, [selectedCategory, page, sortOrder]);
-
 
   const fetchCart = async (cartId) => {
     try {
@@ -83,6 +97,7 @@ const Home = () => {
 
       if (res) {
         dispatch(setCartItems(res.items));
+        dispatch(setTotalAmount(res.totalAmount));
       } else {
         console.error("Cart data is missing or invalid.");
       }
@@ -100,6 +115,7 @@ const Home = () => {
         if (patientData.cart && patientData.cart.id) {
           const cartId = patientData.cart.id;
           dispatch(setCartId(cartId));
+          dispatch(fetchPatient(patientData.patientId));
           await fetchCart(cartId);
         } else {
           console.error("Cart ID is missing in patient data.");
@@ -113,8 +129,18 @@ const Home = () => {
 
   const addToCart = async (product) => {
     try {
-      await addToCartAPI(product.id, 1);
-      await fetchCart(cartId);
+      let currentCartId = cartId; // Lấy giá trị cartId từ Redux store
+  
+      if (!currentCartId || currentCartId === "null") {
+        // Gọi API tạo giỏ hàng nếu chưa có
+        const newCart = await getCartAPI();
+        dispatch(setCartId(newCart.id));
+        currentCartId = newCart.id; // Cập nhật biến local
+        console.log("New Cart Created:", newCart);
+      }
+  
+      await addToCartAPI(product.id, 1); // Thêm sản phẩm vào giỏ hàng
+      await fetchCart(currentCartId); // Lấy dữ liệu giỏ hàng
       setSnackbar({
         open: true,
         message: "Thêm vào giỏ hàng thành công!",
@@ -129,6 +155,7 @@ const Home = () => {
       });
     }
   };
+  
 
   const toggleCartVisibility = () => setIsCartVisible((prev) => !prev);
 
@@ -136,7 +163,7 @@ const Home = () => {
     setSnackbar((prev) => ({ ...prev, open: false }));
   };
 
-  const handlePageChange = ( value) => {
+  const handlePageChange = (event, value) => {
     setPage(value);
   };
 
@@ -189,9 +216,13 @@ const Home = () => {
           <Pagination
             count={totalPages}
             page={page}
-            onChange={(_, value) => handlePageChange(value)}
+            onChange={(event, value) => handlePageChange(event, value)}
             color="primary"
-            sx={{ marginTop: "20px", display: "flex", justifyContent: "center" }}
+            sx={{
+              marginTop: "20px",
+              display: "flex",
+              justifyContent: "center",
+            }}
           />
         </Box>
 
@@ -217,7 +248,9 @@ const Home = () => {
         }}
       >
         <Badge
-          badgeContent={cartItems?.reduce((acc, item) => acc + item.quantity, 0) || 0}
+          badgeContent={
+            cartItems?.reduce((acc, item) => acc + item.quantity, 0) || 0
+          }
           color="error"
           sx={{ fontSize: "14px" }}
         >

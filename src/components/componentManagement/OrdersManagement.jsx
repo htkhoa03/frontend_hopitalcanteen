@@ -14,231 +14,126 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import { Print, Check, Delete } from "@mui/icons-material";
-import {
-  Document,
-  Packer,
-  Paragraph,
-  TextRun,
-  Table as DocTable,
-  TableRow as DocTableRow,
-  TableCell as DocTableCell,
-  WidthType,
-} from "docx";
-import { saveAs } from "file-saver";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
+import { cancelOrders, confirmOrders, getAllOrders } from "../../axios/orderService";
+
 
 const OrdersManagement = () => {
   const [orders, setOrders] = useState([]);
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [orderStatus, setOrderStatus] = useState("all");
   const [selectedOrder, setSelectedOrder] = useState(null);
-  const [orderProducts, setOrderProducts] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
-  // Fetch data giả lập
+  // Fetch orders from API
+  const fetchOrders = async () => {
+    try {
+      const response = await getAllOrders();
+      setOrders(response);
+      setFilteredOrders(response);
+    } catch (error) {
+      setSnackbar({ open: true, message: "Không thể tải danh sách đơn hàng!", severity: "error" });
+    }
+  };
+
   useEffect(() => {
-    const mockOrders = [
-      {
-        id: "DH001",
-        total: 500000,
-        status: "confirmed",
-        orderTime: "2024-12-15 10:30",
-        products: [
-          { name: "Sản phẩm A", quantity: 2, price: 100000 },
-          { name: "Sản phẩm B", quantity: 1, price: 300000 },
-        ],
-      },
-      {
-        id: "DH002",
-        total: 200000,
-        status: "pending",
-        orderTime: "2024-12-16 14:00",
-        products: [{ name: "Sản phẩm C", quantity: 1, price: 200000 }],
-      },
-      {
-        id: "DH003",
-        total: 150000,
-        status: "cancelled",
-        orderTime: "2024-12-17 09:15",
-        products: [{ name: "Sản phẩm D", quantity: 3, price: 50000 }],
-      },
-    ];
-    setOrders(mockOrders);
-    setFilteredOrders(mockOrders);
+    fetchOrders();
   }, []);
 
-  // Lọc đơn hàng theo trạng thái
+  // Filter orders based on status
   useEffect(() => {
     if (orderStatus === "all") {
-      setFilteredOrders(orders.filter((order) => order.status === "pending"));
+      setFilteredOrders(orders);
     } else {
       setFilteredOrders(orders.filter((order) => order.status === orderStatus));
     }
   }, [orderStatus, orders]);
 
-  // Xử lý xác nhận đơn hàng
-  const handleConfirmOrder = (order) => {
-    setOrders((prevOrders) =>
-      prevOrders.map((item) =>
-        item.id === order.id ? { ...item, status: "confirmed" } : item
-      )
-    );
-    setSelectedOrder(order);
-    setOrderProducts(order.products);
-    setOpenDialog(true);
+  // Confirm order
+  const handleConfirmOrder = async (orderId) => {
+    try {
+      const response = await confirmOrders();
+      setSnackbar({ open: true, message: response.message, severity: "success" });
+      fetchOrders();
+    } catch (error) {
+      setSnackbar({ open: true, message: "Xác nhận đơn hàng thất bại!", severity: "error" });
+    }
   };
 
-  // In hóa đơn ra file PDF
-  const handlePrintBill = async () => {
+  // Cancel order
+  const handleCancelOrder = async (orderId) => {
+    try {
+      const response = await cancelOrders();
+      setSnackbar({ open: true, message: response.message, severity: "success" });
+      fetchOrders();
+    } catch (error) {
+      setSnackbar({ open: true, message: "Hủy đơn hàng thất bại!", severity: "error" });
+    }
+  };
+
+  // Print bill
+  const handlePrintBill = () => {
     if (!selectedOrder) return;
-
-    // Tạo nội dung cho hóa đơn
-    const doc = new Document({
-      sections: [
-        {
-          properties: {
-            page: {
-              size: {
-                width: 80 * 20, // 80mm
-                height: 297 * 20, // A4 chiều cao
-              },
-            },
-          },
-          children: [
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: `Hóa đơn: ${selectedOrder.id}`,
-                  bold: true,
-                  size: 24,
-                }),
-              ],
-            }),
-            new Paragraph({
-              children: [
-                new TextRun(`Thời gian đặt hàng: ${selectedOrder.orderTime}`),
-              ],
-            }),
-            new Paragraph({
-              children: [
-                new TextRun(
-                  `Tổng tiền: ${selectedOrder.total.toLocaleString()} Đ`
-                ),
-              ],
-            }),
-            new DocTable({
-              width: { size: 100, type: WidthType.PERCENTAGE },
-              rows: [
-                new DocTableRow({
-                  children: [
-                    new DocTableCell({
-                      children: [new Paragraph("Sản phẩm")],
-                    }),
-                    new DocTableCell({
-                      children: [new Paragraph("Số lượng")],
-                    }),
-                    new DocTableCell({
-                      children: [new Paragraph("Giá")],
-                    }),
-                  ],
-                }),
-                ...selectedOrder.products.map(
-                  (product) =>
-                    new DocTableRow({
-                      children: [
-                        new DocTableCell({
-                          children: [new Paragraph(product.name)],
-                        }),
-                        new DocTableCell({
-                          children: [
-                            new Paragraph(product.quantity.toString()),
-                          ],
-                        }),
-                        new DocTableCell({
-                          children: [
-                            new Paragraph(
-                              product.price.toLocaleString() + " Đ"
-                            ),
-                          ],
-                        }),
-                      ],
-                    })
-                ),
-              ],
-            }),
-          ],
-        },
-      ],
+    const doc = new jsPDF();
+    doc.text(`Hóa đơn: ${selectedOrder.id}`, 20, 20);
+    doc.text(`Thời gian đặt hàng: ${selectedOrder.orderTime}`, 20, 30);
+    doc.text(`Tổng tiền: ${selectedOrder.total.toLocaleString()} Đ`, 20, 40);
+    doc.autoTable({
+      head: [["Sản phẩm", "Số lượng", "Giá"]],
+      body: selectedOrder.products.map((product) => [
+        product.name,
+        product.quantity,
+        product.price.toLocaleString() + " Đ",
+      ]),
+      startY: 50,
     });
-
-    // Lưu file
-    const blob = await Packer.toBlob(doc);
-    saveAs(blob, `Hoa_don_${selectedOrder.id}.docx`);
+    doc.save(`Hoa_don_${selectedOrder.id}.pdf`);
   };
 
   return (
-    <Box sx={{ backgroundColor: "#f9f9f9", minHeight: "100vh", p: 3 }}>
-      <Typography
-        variant="h4"
-        sx={{
-          textAlign: "center",
-          color: "#1976d2",
-          fontWeight: "bold",
-          mb: 4,
-          mt: 6,
-        }}
-      >
+    <Box sx={{ backgroundColor: "#f9f9f9", minHeight: "100vh", p: 3, mt:5 }}>
+      <Typography variant="h4" sx={{ textAlign: "center", color: "#1976d2", fontWeight: "bold", mb: 4 }}>
         Quản lý đơn hàng
       </Typography>
 
-      {/* Nút chuyển trạng thái */}
       <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mb: 3 }}>
-        <Button
-          variant={orderStatus === "all" ? "contained" : "outlined"}
-          onClick={() => setOrderStatus("all")}
-          sx={{ textTransform: "none" }}
-        >
-          Tất cả đơn hàng
-        </Button>
-        <Button
-          variant={orderStatus === "confirmed" ? "contained" : "outlined"}
-          onClick={() => setOrderStatus("confirmed")}
-          sx={{ textTransform: "none" }}
-        >
-          Đơn hàng đã xác nhận
-        </Button>
-        <Button
-          variant={orderStatus === "cancelled" ? "contained" : "outlined"}
-          onClick={() => setOrderStatus("cancelled")}
-          sx={{ textTransform: "none" }}
-        >
-          Đơn hàng đã hủy
-        </Button>
+        {["all", "confirmed", "cancelled"].map((status) => (
+          <Button
+            key={status}
+            variant={orderStatus === status ? "contained" : "outlined"}
+            onClick={() => setOrderStatus(status)}
+          >
+            {status === "all" ? "Tất cả đơn hàng" : `Đơn hàng ${status}`}
+          </Button>
+        ))}
       </Box>
 
-      {/* Bảng danh sách đơn hàng */}
-      <TableContainer component={Paper} sx={{ boxShadow: 3 }}>
+      <TableContainer component={Paper}>
         <Table>
           <TableHead sx={{ backgroundColor: "#f0f0f0" }}>
             <TableRow>
               <TableCell align="center">Mã đơn hàng</TableCell>
               <TableCell align="center">Tổng giá</TableCell>
+              <TableCell align="center">Trạng thái</TableCell>
               <TableCell align="center">Hành động</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {filteredOrders.map((order) => (
               <TableRow key={order.id}>
-                <TableCell align="center">{order.id}</TableCell>
-                <TableCell align="center">
-                  {order.total.toLocaleString()} Đ
-                </TableCell>
+                <TableCell align="center">{order.orderId}</TableCell>
+                <TableCell align="center">{order.total.toLocaleString()} Đ</TableCell>
+                <TableCell align="center">{order.status}</TableCell>
                 <TableCell align="center">
                   <Button
                     startIcon={<Check />}
-                    sx={{ mr: 1 }}
-                    onClick={() => handleConfirmOrder(order)}
+                    onClick={() => handleConfirmOrder(order.orderId)}
                     disabled={order.status !== "pending"}
                   >
                     Xác nhận
@@ -246,9 +141,9 @@ const OrdersManagement = () => {
                   <Button
                     startIcon={<Delete />}
                     color="error"
-                    onClick={() => console.log(`Xóa: ${order.id}`)}
+                    onClick={() => handleCancelOrder(order.id)}
                   >
-                    Hủy bỏ
+                    Hủy
                   </Button>
                 </TableCell>
               </TableRow>
@@ -257,46 +152,15 @@ const OrdersManagement = () => {
         </Table>
       </TableContainer>
 
-      {/* Dialog hiển thị sản phẩm */}
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
-        <DialogTitle>Chi tiết đơn hàng: {selectedOrder?.id}</DialogTitle>
-        <DialogContent>
-          <Typography gutterBottom>
-            Thời gian đặt hàng: {selectedOrder?.orderTime}
-          </Typography>
-          <Typography variant="h6" gutterBottom>
-            Tổng tiền: {selectedOrder?.total?.toLocaleString()} Đ
-          </Typography>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Sản phẩm</TableCell>
-                <TableCell>Số lượng</TableCell>
-                <TableCell>Giá</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {orderProducts.map((product, index) => (
-                <TableRow key={index}>
-                  <TableCell>{product.name}</TableCell>
-                  <TableCell>{product.quantity}</TableCell>
-                  <TableCell>{product.price.toLocaleString()} Đ</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            startIcon={<Print />}
-            variant="contained"
-            onClick={handlePrintBill}
-          >
-            In hóa đơn
-          </Button>
-          <Button onClick={() => setOpenDialog(false)}>Đóng</Button>
-        </DialogActions>
-      </Dialog>
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      >
+        <Alert severity={snackbar.severity} onClose={() => setSnackbar({ ...snackbar, open: false })}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

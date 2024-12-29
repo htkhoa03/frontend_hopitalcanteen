@@ -1,237 +1,179 @@
 import React, { useState } from "react";
-import { Routes, Route } from "react-router-dom";
-import ProductManagement from "../components/componentManagement/ProductManagement";
-import EmployeeManagement from "../components/componentManagement/EmployeesManagement";
-import AccountManagement from "../components/componentManagement/PatientManagement";
-import OrdersManagement from "../components/componentManagement/OrdersManagement";
 import {
   Box,
-  Typography,
-  MenuItem,
-  FormControl,
-  Select,
-  Grid,
   Card,
   CardContent,
+  Grid,
+  Typography,
+  Container,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
 } from "@mui/material";
+import { styled } from "@mui/system";
+import InventoryIcon from "@mui/icons-material/Inventory";
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 
-import AccountingManagement from "../components/componentManagement/AccountingManagement";
+const StyledCard = styled(Card)(({ theme, bgcolor }) => ({
+  height: "100%",
+  backgroundColor: bgcolor,
+  transition: "transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out",
+  "&:hover": {
+    transform: "translateY(-5px)",
+    boxShadow: "0 8px 16px rgba(0,0,0,0.2)",
+  },
+}));
 
-const ManagementHome = () => {
-  const [timeFrame, setTimeFrame] = useState("today");
-  const [productsSold, setProductsSold] = useState(
-  //   salesData.today.productsSold
-  // );
-  // const [ordersPlaced, setOrdersPlaced] = useState(
-  //   salesData.today.ordersPlaced
-  // );
-  // const [totalRevenue, setTotalRevenue] = useState(
-  //   salesData.today.totalRevenue
-  );
+const IconWrapper = styled(Box)({
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  fontSize: "2.5rem",
+  marginBottom: "1rem",
+});
 
-  const handleTimeFrameChange = (event) => {
-    // const selectedTimeFrame = event.target.value;
-    // setTimeFrame(selectedTimeFrame);
-    // setProductsSold(salesData[selectedTimeFrame].productsSold);
-    // setOrdersPlaced(salesData[selectedTimeFrame].ordersPlaced);
-    // setTotalRevenue(salesData[selectedTimeFrame].totalRevenue);
+const DashboardHeader = styled(Box)(({ theme }) => ({
+  padding: theme.spacing(3),
+  marginBottom: theme.spacing(4),
+  [theme.breakpoints.down("sm")]: {
+    textAlign: "center",
+  },
+  [theme.breakpoints.up("md")]: {
+    textAlign: "left",
+  },
+}));
+
+const ManagementDashboard = () => {
+  const [timeframe, setTimeframe] = useState("weekly");
+
+
+  const handleTimeframeChange = (event) => {
+    setTimeframe(event.target.value);
   };
 
   return (
-    <Box>
-      {/* Header */}
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: { xs: "column", sm: "row" },
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 4,
-          maxWidth: "600px",
-          marginTop: "100px",
-          left: 20,
-        }}
-      >
-        <Typography variant="h4" sx={{ marginBottom: { xs: 2, sm: 0 } }}>
-          Dashboard
-        </Typography>
-        <FormControl sx={{ width: { xs: "100%", sm: 200 } }}>
-          <Select value={timeFrame} onChange={handleTimeFrameChange}>
-            <MenuItem value="today">Hôm nay</MenuItem>
-            <MenuItem value="month">Tháng này</MenuItem>
-            <MenuItem value="year">Năm nay</MenuItem>
-          </Select>
-        </FormControl>
-      </Box>
+    <Container maxWidth="lg" sx={{ marginTop: 10 }}>
+      <DashboardHeader>
+        <Grid container alignItems="center" spacing={3}>
+          <Grid item xs={12} md={6}>
+            <Typography
+              variant="h4"
+              component="h1"
+              fontWeight="bold"
+              gutterBottom
+              sx={{ color: "#1565c0" }}
+            >
+              Management Dashboard
+            </Typography>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <FormControl fullWidth>
+              <InputLabel id="timeframe-select-label">Thời gian</InputLabel>
+              <Select
+                labelId="timeframe-select-label"
+                value={timeframe}
+                label="Timeframe"
+                onChange={handleTimeframeChange}
+              >
+                <MenuItem value="daily">Hôm nay</MenuItem>
+                <MenuItem value="weekly">Tuần này</MenuItem>
+                <MenuItem value="monthly">Tháng này</MenuItem>
+                <MenuItem value="yearly">Năm nay</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+        </Grid>
+      </DashboardHeader>
 
-      {/* Dashboard Cards */}
       <Grid container spacing={4}>
-        <Grid item xs={12} sm={6}>
-          <Card
-            sx={{
-              backgroundColor: "#f1f8ff",
-              boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",
-              borderRadius: "16px",
-            }}
-          >
-            <CardContent
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                flexDirection: { xs: "column", sm: "row" },
-              }}
-            >
-              <Box
-                sx={{
-                  backgroundColor: "#dbeafe",
-                  padding: "16px",
-                  borderRadius: "50%",
-                  marginRight: { sm: "16px" },
-                  marginBottom: { xs: 2, sm: 0 },
-                }}
+        {/* Card 1: Total Products */}
+        <Grid item xs={12} sm={6} md={4}>
+          <StyledCard bgcolor="#e3f2fd">
+            <CardContent>
+              <IconWrapper>
+                <InventoryIcon fontSize="large" sx={{ color: "#1565c0" }} />
+              </IconWrapper>
+              <Typography
+                variant="h4"
+                component="div"
+                align="center"
+                fontWeight="bold"
+                gutterBottom
               >
-                <Typography
-                  component="div"
-                  sx={{ fontSize: "2rem", color: "#1d4ed8" }}
-                >
-                  📦
-                </Typography>
-              </Box>
-              <Box sx={{ textAlign: { xs: "center", sm: "left" } }}>
-                <Typography variant="h6" sx={{ color: "#1d4ed8" }}>
-                  Tổng sản phẩm bán được
-                </Typography>
-                <Typography
-                  variant="h4"
-                  sx={{ fontWeight: "bold", color: "#1d4ed8" }}
-                >
-                  {productsSold}
-                </Typography>
-              </Box>
+                {/* Dynamic Data Here */}
+              </Typography>
+              <Typography
+                variant="h6"
+                component="div"
+                align="center"
+                gutterBottom
+              >
+                Total Products
+              </Typography>
             </CardContent>
-          </Card>
+          </StyledCard>
         </Grid>
 
-        <Grid item xs={12} sm={6}>
-          <Card
-            sx={{
-              backgroundColor: "#fff7e6",
-              boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",
-              borderRadius: "16px",
-            }}
-          >
-            <CardContent
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                flexDirection: { xs: "column", sm: "row" },
-              }}
-            >
-              <Box
-                sx={{
-                  backgroundColor: "#fef3c7",
-                  padding: "16px",
-                  borderRadius: "50%",
-                  marginRight: { sm: "16px" },
-                  marginBottom: { xs: 2, sm: 0 },
-                }}
+        {/* Card 2: Total Orders */}
+        <Grid item xs={12} sm={6} md={4}>
+          <StyledCard bgcolor="#f3e5f5">
+            <CardContent>
+              <IconWrapper>
+                <ShoppingCartIcon fontSize="large" sx={{ color: "#8e24aa" }} />
+              </IconWrapper>
+              <Typography
+                variant="h4"
+                component="div"
+                align="center"
+                fontWeight="bold"
+                gutterBottom
               >
-                <Typography
-                  component="div"
-                  sx={{ fontSize: "2rem", color: "#f59e0b" }}
-                >
-                  🛒
-                </Typography>
-              </Box>
-              <Box sx={{ textAlign: { xs: "center", sm: "left" } }}>
-                <Typography variant="h6" sx={{ color: "#d97706" }}>
-                  Tổng đơn hàng
-                </Typography>
-                <Typography
-                  variant="h4"
-                  sx={{ fontWeight: "bold", color: "#d97706" }}
-                >
-                  {/* {ordersPlaced} */}
-                </Typography>
-              </Box>
+                {/* Dynamic Data Here */}
+              </Typography>
+              <Typography
+                variant="h6"
+                component="div"
+                align="center"
+                gutterBottom
+              >
+                Total Orders
+              </Typography>
             </CardContent>
-          </Card>
+          </StyledCard>
         </Grid>
 
-        <Grid item xs={12} sm={6}>
-          <Card
-            sx={{
-              backgroundColor: "#d1fae5",
-              boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",
-              borderRadius: "16px",
-            }}
-          >
-            <CardContent
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                flexDirection: { xs: "column", sm: "row" },
-              }}
-            >
-              <Box
-                sx={{
-                  backgroundColor: "#a7f3d0",
-                  padding: "16px",
-                  borderRadius: "50%",
-                  marginRight: { sm: "16px" },
-                  marginBottom: { xs: 2, sm: 0 },
-                }}
+        {/* Card 3: Total Revenue */}
+        <Grid item xs={12} sm={6} md={4}>
+          <StyledCard bgcolor="#e8f5e9">
+            <CardContent>
+              <IconWrapper>
+                <AttachMoneyIcon fontSize="large" sx={{ color: "#43a047" }} />
+              </IconWrapper>
+              <Typography
+                variant="h4"
+                component="div"
+                align="center"
+                fontWeight="bold"
+                gutterBottom
               >
-                <Typography
-                  component="div"
-                  sx={{ fontSize: "2rem", color: "#10b981" }}
-                >
-                  💰
-                </Typography>
-              </Box>
-              <Box sx={{ textAlign: { xs: "center", sm: "left" } }}>
-                <Typography variant="h6" sx={{ color: "#16a34a" }}>
-                  Tổng tiền bán được
-                </Typography>{" "}
-                <Typography
-                  variant="h4"
-                  sx={{ fontWeight: "bold", color: "#16a34a" }}
-                >
-                  {/* {totalRevenue.toLocaleString()} Đ */}
-                </Typography>
-              </Box>
+                {/* Dynamic Data Here */}
+              </Typography>
+              <Typography
+                variant="h6"
+                component="div"
+                align="center"
+                gutterBottom
+              >
+                Total Revenue
+              </Typography>
             </CardContent>
-          </Card>
+          </StyledCard>
         </Grid>
       </Grid>
-
-      {/* Routes */}
-      <Box>
-        <Routes>
-          <Route
-            path="/management/product-management"
-            element={<ProductManagement />}
-          />
-          <Route
-            path="/management/employees-management"
-            element={<EmployeeManagement />}
-          />
-          <Route
-            path="/management/account-management"
-            element={<AccountManagement />}
-          />
-          <Route
-            path="/management/orders-management"
-            element={<OrdersManagement />}
-          />
-          <Route
-            path="/management/accounting-management"
-            element={<AccountingManagement />}
-          />
-        </Routes>
-      </Box>
-    </Box>
+    </Container>
   );
 };
 
-export default ManagementHome;
+export default ManagementDashboard;

@@ -22,7 +22,7 @@ const cartSlice = createSlice({
       state.items = state.items.filter((item)=>item.id !== itemId) 
     },
     clearCart: (state) => {
-      state.cartId = null;
+      // state.cartId = "";
       state.totalAmount = 0;
       state.items = [];
     },

@@ -11,26 +11,27 @@ import {
   TableRow,
   IconButton,
   Paper,
+  Toolbar,
 } from "@mui/material";
 import { Edit, Delete } from "@mui/icons-material";
 import * as XLSX from "xlsx";
 import { getAllUsers } from "../../axios/userService";
 
-
 const EmployeeManagement = () => {
-
   const [users, setUsers] = useState(null);
-    useEffect(() => {
-      const fetchPatients = async () => {
-        try {
-          const res = await getAllUsers();
-          setUsers(res);
-        } catch (error) {
-          console.error("Error fetching users:", error);
-        }
-      };
-      fetchPatients();
-    }, []);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await getAllUsers();
+        setUsers(res);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    };
+    fetchUsers();
+  }, []);
+
   const exportToExcel = () => {
     const ws = XLSX.utils.json_to_sheet(users);
     const wb = XLSX.utils.book_new();
@@ -41,60 +42,94 @@ const EmployeeManagement = () => {
   return (
     <Box
       sx={{
-        backgroundColor: "#f5f5f5",
+        backgroundColor: "#fff",
         minHeight: "100vh",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        justifyContent: "center",
-        padding: "20px",
+        justifyContent: "flex-start",
+        padding: 4,
       }}
     >
-      <Typography
-        variant="h4"
-        gutterBottom
-        sx={{ textAlign: "center", color: "#1976d2", marginBottom: "20px" }}
+      <Toolbar />
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          width: "100%",
+          maxWidth: "1200px",
+          mb: 4,
+          px: 2,
+        }}
       >
-        Quản lý Nhân viên
-      </Typography>
-      <Box sx={{ marginBottom: "20px" }}>
-        <Button
-          variant="contained"
+        <Typography
+          variant="h4"
           sx={{
-            backgroundColor: "#1976d2",
-            color: "#fff",
-            marginRight: "10px",
+            color: "#1565c0",
+            
+           
           }}
         >
-          Thêm nhân viên mới
-        </Button>
-        <Button
-          variant="contained"
-          sx={{ backgroundColor: "#1976d2", color: "#fff" }}
-          // onClick={exportToExcel}
-        >
-          Xuất file Excel
-        </Button>
+          Quản lý nhân viên
+        </Typography>
+        <Box>
+          <Button
+            variant="contained"
+            sx={{
+              backgroundColor: "#1565c0",
+              color: "#fff",
+              mr: 2,
+            }}
+          >
+            Thêm nhân viên mới
+          </Button>
+          <Button
+            variant="contained"
+            sx={{ backgroundColor: "#1565c0", color: "#fff" }}
+            onClick={exportToExcel}
+          >
+            Xuất file Excel
+          </Button>
+        </Box>
       </Box>
+
       <TableContainer
         component={Paper}
-        sx={{ boxShadow: 3, width: "100%", maxWidth: 800 }}
+        sx={{
+          width: "100%",
+          maxWidth: "1200px",
+          boxShadow: 1,
+          borderRadius: 1,
+        }}
       >
         <Table>
-          <TableHead sx={{ backgroundColor: "#e0e0e0" }}>
-            <TableRow sx={{ fontWeigh: "bold" }}>
-              <TableCell align="center">Tên nhân viên</TableCell>
-              <TableCell align="center">Vai trò</TableCell>
-              <TableCell align="center">Khoa</TableCell>
-              <TableCell align="center">Username</TableCell>
-              <TableCell align="center">Password</TableCell>
-              <TableCell align="center">Hành động</TableCell>
+          <TableHead sx={{ backgroundColor: "#1565c0" }}>
+            <TableRow>
+              <TableCell align="center" sx={{ color: "#fff", fontWeight: "bold" }}>
+                Tên nhân viên
+              </TableCell>
+              <TableCell align="center" sx={{ color: "#fff", fontWeight: "bold" }}>
+                Vai trò
+              </TableCell>
+              <TableCell align="center" sx={{ color: "#fff", fontWeight: "bold" }}>
+                Khoa
+              </TableCell>
+              <TableCell align="center" sx={{ color: "#fff", fontWeight: "bold" }}>
+                Username
+              </TableCell>
+              <TableCell align="center" sx={{ color: "#fff", fontWeight: "bold" }}>
+                Password
+              </TableCell>
+              <TableCell align="center" sx={{ color: "#fff", fontWeight: "bold" }}>
+                Hành động
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {users?.map((employee) => (
               <TableRow key={employee.id}>
-                <TableCell align="center">{employee.name}</TableCell>
+                <TableCell align="center">{employee.fullName}</TableCell>
                 <TableCell align="center">{employee.role}</TableCell>
                 <TableCell align="center">{employee.department}</TableCell>
                 <TableCell align="center">{employee.username}</TableCell>

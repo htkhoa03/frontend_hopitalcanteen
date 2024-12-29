@@ -7,9 +7,9 @@ export const getCartAPI = async (cartId) => {
 };
 
 // Thêm sản phẩm vào giỏ hàng
-export const addToCartAPI = async (productId, quantity) => {
+export const addToCartAPI = (productId, quantity) => {
   const url = `/cartItems/item/add?quantity=${quantity}&productId=${productId}`;
-  await axios.post(url);
+  return axios.post(url);
 };
 
 // Xóa sản phẩm khỏi giỏ hàng
@@ -25,5 +25,11 @@ export const clearCartAPI = async (cartId) => {
 // Lấy tổng giá giỏ hàng
 export const getTotalPriceAPI = async (cartId) => {
   const response = await axios.get(`/carts/${cartId}/cart/total-price`);
+  return response.data.data;
+};
+// cập nhật sản phẩm 
+
+export const updateCartAPI = async (cartId, itemId, quantity) => {
+  const response = await axios.put(`/cartItems/cart/${cartId}/item/${itemId}/update?quantity=${quantity}`);
   return response.data.data;
 };

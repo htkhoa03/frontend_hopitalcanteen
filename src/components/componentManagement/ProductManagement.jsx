@@ -21,6 +21,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Pagination,
 } from "@mui/material";
 import { Edit, Delete, Add, Download } from "@mui/icons-material";
 import * as XLSX from "xlsx";
@@ -49,14 +50,27 @@ const ProductManagement = () => {
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [openSnackbar, setOpenSnackbar] = useState(false);
 
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
   // Fetch dữ liệu từ backend
   const fetchProducts = async () => {
     try {
-      const res = await getAllProductsService();
+      const res = await getAllProductsService({
+        page: page - 1,
+        size: 12,
+        sortBy: "price",
+        sortDirection: "asc",
+      });
       setProducts(res.data.data.content);
+      setTotalPages(res.data.data.totalPages);
     } catch (error) {
       console.error("Error fetching products:", error);
     }
+  };
+
+  const handlePageChange = (event, value) => {
+    setPage(value);
   };
 
   const fetchCategories = async () => {
@@ -120,7 +134,7 @@ const ProductManagement = () => {
     productData.append("name", editProduct.name);
     productData.append("price", editProduct.price);
     productData.append("unit", editProduct.unit);
-    productData.append("stock", editProduct.stock?.quantity);
+    productData.append("quantity", editProduct.stock?.quantity);
     productData.append("category", editProduct.category.name);
     if (editProduct.images) {
       editProduct.images.forEach((image) =>
@@ -297,6 +311,13 @@ const ProductManagement = () => {
           </TableBody>
         </Table>
       </TableContainer>
+      <Pagination
+        count={totalPages}
+        page={page}
+        onChange={(event, value) => handlePageChange(event, value)}
+        color="primary"
+        sx={{ marginTop: "20px", display: "flex", justifyContent: "center" }}
+      />
 
       {/* Snackbar thông báo */}
       <Snackbar

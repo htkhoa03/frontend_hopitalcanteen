@@ -7,7 +7,7 @@ const SnackbarNotification = ({ open, message, severity, onClose }) => {
       open={open}
       autoHideDuration={3000}
       onClose={onClose}
-      anchorOrigin={{ vertical: "top", horizontal: "right" }} // Vị trí cố định
+      anchorOrigin={{ vertical: "bottom", horizontal: "center" }} // Vị trí cố định
       sx={{ marginTop: 16, marginRight: 16 }} // Tùy chỉnh khoảng cách
     >
       <Alert severity={severity} onClose={onClose}>

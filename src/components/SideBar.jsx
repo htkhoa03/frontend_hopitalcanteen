@@ -56,8 +56,8 @@ const SideBar = () => {
       sx={{
         width: { xs: "100%", md: 300 },
         height: "100vh",
-        backgroundColor: "#1d4ed8",
-        color: "white",
+        backgroundColor: "whitesmoke",
+        color: "black",
         padding: "20px 0",
         position: { xs: "relative", md: "fixed" },
         zIndex: 10,
@@ -73,12 +73,19 @@ const SideBar = () => {
             onClick={() => navigate(item.path)}
             sx={{
               padding: "16px",
+              transition: "background-color 0.3s ease",
               "&:hover": {
-                backgroundColor: "rgba(255, 255, 255, 0.1)",
+                backgroundColor: "#64b5e3",
               },
             }}
           >
-            <ListItemIcon sx={{ color: "white" }}>{item.icon}</ListItemIcon>
+            <ListItemIcon
+              sx={{
+                color: "#345DA7",
+              }}
+            >
+              {item.icon}
+            </ListItemIcon>
             <ListItemText primary={item.text} />
           </ListItem>
         ))}

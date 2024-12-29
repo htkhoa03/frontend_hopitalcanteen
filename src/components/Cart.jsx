@@ -1,50 +1,64 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   clearCartAPI,
   getCartAPI,
   removeFromCartAPI,
+  updateCartAPI,
 } from "../axios/cartService";
 import {
   Box,
   Typography,
   List,
   ListItem,
-  ListItemText,
   Button,
+  TextField,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   Divider,
+  IconButton,
 } from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
+import ShoppingCartCheckoutIcon from "@mui/icons-material/ShoppingCartCheckout";
+import ClearAllIcon from "@mui/icons-material/ClearAll";
 import { useDispatch, useSelector } from "react-redux";
 import {
   setCartItems,
   setTotalAmount,
   removeCartItems,
   clearCart,
+  setCartId,
 } from "../redux/cartSlice";
-
+import { createOrderAPI } from "../axios/orderService";
+import { fetchPatient } from "../redux/patientsSlice";
+import useDebounce from "../hooks/useDeBounce";
 const Cart = () => {
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [isErrorDialogOpen, setErrorDialogOpen] = useState(false);
   const dispatch = useDispatch();
+  
 
   const cartItems = useSelector((state) => state.cart.items);
   const cartId = useSelector((state) => state.cart?.cartId);
   const totalAmount = useSelector((state) => state.cart.totalAmount);
-  console.log(cartItems);
 
-  // Lấy dữ liệu giỏ hàng
+  const patient = useSelector((state) => state.patients?.patient);
+  const patientId = patient?.patientId;
+
+  const [quantityChanges, setQuantityChanges] = useState({});
+  const debouncedQuantityChanges = useDebounce(quantityChanges, 50);
+
+  useEffect(() => {
+    dispatch(fetchPatient(patientId));
+  }, [dispatch, patientId]);
+
   const fetchCartData = async () => {
     try {
       const res = await getCartAPI(cartId);
-      const data = res;
-      console.log("ress",res)
-
-      if (data) {
-        dispatch(setCartItems(data.items || []));
-        dispatch(setTotalAmount(data.totalAmount || 0));
+      if (res) {
+        dispatch(setCartItems(res.items || []));
+        dispatch(setTotalAmount(res.totalAmount));
       } else {
         console.error("Cart data is invalid.");
       }
@@ -53,10 +67,8 @@ const Cart = () => {
     }
   };
 
-  // Xử lý xóa sản phẩm
   const handleRemoveFromCartItems = async (itemId) => {
     try {
-      console.log("Removing item with ID:", itemId);
       await removeFromCartAPI(cartId, itemId);
       dispatch(removeCartItems(itemId));
       await fetchCartData();
@@ -65,41 +77,63 @@ const Cart = () => {
       alert("Không thể xóa sản phẩm.");
     }
   };
-  // xóa toàn bộ sản phẩm
+
   const handleClearAllCart = async () => {
     try {
-      await clearCartAPI(cartId);
-      dispatch(clearCart(cartId));
-      // dispatch(setTotalAmount(totalAmount === 0));
-      await fetchCartData();
+      await clearCartAPI(cartId); // Xóa giỏ hàng
+      dispatch(clearCart(cartId)); // Cập nhật Redux store
+      
+      // Tạo giỏ hàng mới sau khi xóa
+      const newCart = await getCartAPI();
+      dispatch(setCartId(newCart.id)); 
+      await fetchCartData(); 
     } catch (error) {
-      console.log("Error clear cart: ", error);
+      console.error("Error clearing cart:", error);
+    }
+  };
+  
+
+  const handleCheckoutClick = async () => {
+    try {
+      await createOrderAPI(patientId);
+      setDialogOpen(true);
+    } catch (error) {
+      console.error("Error during checkout:", error);
+      setErrorDialogOpen(true);
     }
   };
 
-  // Xử lý thanh toán
-  const handleCheckoutClick = async () => {
-    // if (patientBalance >= totalAmount) {
-    //   setPatientBalance((prevBalance) => prevBalance - totalAmount);
-    //   try {
-    //     await clearCartAPI(cartId);
-    //     dispatch(setCartItems([])); // Xóa sạch giỏ hàng
-    //     dispatch(setTotalAmount(0)); // Reset tổng tiền
-    //     setDialogOpen(true);
-    //   } catch (error) {
-    //     console.error("Error during checkout:", error);
-    //   }
-    // } else {
-    //   setErrorDialogOpen(true);
-    // }
+
+  useEffect(() => {
+    const updateQuantities = async () => {
+      for (const itemId in debouncedQuantityChanges) {
+        const newQuantity = debouncedQuantityChanges[itemId];
+        if (newQuantity !== null) {
+          await handleUpdateQuantity(itemId, newQuantity);
+        }
+      }
+    };
+
+    updateQuantities();
+  }, [debouncedQuantityChanges]);
+
+  const handleQuantityChange = (itemId, newQuantity) => {
+    setQuantityChanges((prev) => ({
+      ...prev,
+      [itemId]: newQuantity,
+    }));
   };
 
-  // Gọi API lấy dữ liệu giỏ hàng khi component render
-  // useEffect(() => {
-  //   fetchCartData();
-  // }, [fetchCartData]);
+  const handleUpdateQuantity = async (itemId, newQuantity) => {
+    try {
+      await updateCartAPI(cartId, itemId, newQuantity);
+      await fetchCartData();
+    } catch (error) {
+      console.error("Error updating quantity:", error);
+      alert("Không thể cập nhật số lượng.");
+    }
+  };
 
-  // Đóng Dialog
   const handleCloseDialog = () => {
     setDialogOpen(false);
     setErrorDialogOpen(false);
@@ -107,133 +141,123 @@ const Cart = () => {
 
   return (
     <Box
-    sx={{
-      width: "93%",
-      maxWidth: "400px",
-      padding: "20px",
-      borderRadius: "12px",
-      boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
-      backgroundColor: "#fff",
-      position: "relative",
-      margin: "10px auto", // Center on smaller screens
-    }}
-  >
-    <Typography
-      variant="h5"
       sx={{
-        fontWeight: "bold",
-        textAlign: "center",
-        mb: 2,
-        color: "#1976d2",
+        // position: "fixed",
+        right: "20px",
+        top: "20px",
+        maxWidth: "400px",
+        height: "80vh",
+        overflowY: "auto",
+        padding: "20px",
+        borderRadius: "12px",
+        
+        backgroundColor: "#fff",
       }}
     >
-      Giỏ hàng của bạn
-    </Typography>
+      <Typography
+        variant="h5"
+        sx={{
+          fontWeight: "bold",
+          textAlign: "center",
+          mb: 3,
+          color: "#1976d2",
+        }}
+      >
+        Giỏ hàng của bạn
+      </Typography>
 
-    <Divider sx={{ mb: 2 }} />
+      <Divider sx={{ mb: 3 }} />
 
-    <List>
-      {(cartItems || []).map((item) => (
-        <ListItem
-          key={item?.id}
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 1,
-            padding: "10px 15px",
-            borderRadius: "8px",
-            backgroundColor: "#f9f9f9",
-            boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.05)",
-          }}
-        >
-          <Box>
-            <Typography
-              variant="subtitle1"
-              sx={{ fontWeight: "bold", color: "#333" }}
-            >
-              {item?.product?.name}
-            </Typography>
-            <Typography
-              variant="body2"
-              sx={{ color: "#555", mt: 0.5 }}
-            >
-              Giá: {item?.unitPrice?.toLocaleString()} VND
-            </Typography>
-            <Typography
-              variant="body2"
-              sx={{ color: "#555", mt: 0.5 }}
-            >
-              Số lượng: {item?.quantity}
-            </Typography>
-          </Box>
-          <Button
-            onClick={() => handleRemoveFromCartItems(item.id)}
-            variant="contained"
-            color="error"
+      <List>
+        {cartItems.map((item) => (
+          <ListItem
+            key={item?.id}
             sx={{
-              minWidth: "80px",
-              fontSize: "0.875rem",
-              fontWeight: "bold",
+              display: "flex",
+              alignItems: "center",
+              mb: 2,
+              padding: "10px 15px",
+              borderRadius: "8px",
+              backgroundColor: "#f5f5f5",
+              boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
             }}
           >
-            Xóa
-          </Button>
-        </ListItem>
-      ))}
-    </List>
+            <Box
+              sx={{
+                height: "50px",
+                width: "50px",
+                backgroundImage: `url(http://localhost:8080${
+                  item.product.images.length > 0
+                    ? item.product.images[0].downloadUrl
+                    : "/images/default-placeholder.png"
+                })`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                borderRadius: "8px",
+                mr: 2,
+              }}
+            />
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+                {item?.product?.name}
+              </Typography>
+              <Typography variant="body2" sx={{ color: "#757575" }}>
+                Giá: {item?.unitPrice?.toLocaleString()} VND
+              </Typography>
+              <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
+                <Typography variant="body2" sx={{ color: "#757575" }}>
+                  Số lượng:
+                </Typography>
+                <TextField
+                  type="number"
+                  value={quantityChanges[item.id] ?? item?.quantity}
+                  onChange={(e) =>
+                    handleQuantityChange(item.id, parseInt(e.target.value, 10))
+                  }
+                  size="small"
+                  sx={{ ml: 2, width: "70px" }}
+                />
+              </Box>
+            </Box>
+            <IconButton
+              onClick={() => handleRemoveFromCartItems(item.id)}
+              color="error"
+            >
+              <DeleteIcon />
+            </IconButton>
+          </ListItem>
+        ))}
+      </List>
 
-    <Divider sx={{ my: 2 }} />
+      <Divider sx={{ my: 3 }} />
 
-    <Typography
-      variant="h6"
-      sx={{
-        fontWeight: "bold",
-        textAlign: "right",
-        mb: 2,
-        color: "#1976d2",
-      }}
-    >
-      Tổng tiền:{" "}
-      <span style={{ color: "#e53935" }}>
-        {totalAmount.toLocaleString()} VND
-      </span>
-    </Typography>
-
-    <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}>
-      <Button
-        variant="outlined"
-        color="error"
-        onClick={handleClearAllCart}
-        sx={{
-          flex: 1,
-          fontWeight: "bold",
-          borderColor: "#e53935",
-          color: "#e53935",
-          "&:hover": {
-            backgroundColor: "#ffe5e5",
-          },
-        }}
+      <Typography
+        variant="h5"
+        sx={{ textAlign: "right", color: "#1976d2", mb: 3 }}
       >
-        Xóa toàn bộ
-      </Button>
-      <Button
-        variant="contained"
-        onClick={handleCheckoutClick}
-        sx={{
-          flex: 1,
-          fontWeight: "bold",
-          backgroundColor: "#43a047",
-          "&:hover": {
-            backgroundColor: "#388e3c",
-          },
-        }}
-      >
-        Mua
-      </Button>
-    </Box>
+        Tổng tiền: {totalAmount.toLocaleString()} VND
+      </Typography>
 
-      {/* Dialogs */}
+      <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}>
+        <Button
+          variant="outlined"
+          color="error"
+          onClick={handleClearAllCart}
+          startIcon={<ClearAllIcon />}
+          sx={{ flex: 1, fontWeight: "bold" }}
+        >
+          Xóa toàn bộ
+        </Button>
+        <Button
+          variant="contained"
+          onClick={handleCheckoutClick}
+          startIcon={<ShoppingCartCheckoutIcon />}
+          sx={{ flex: 1, fontWeight: "bold", backgroundColor: "#43a047" }}
+        >
+          Mua
+        </Button>
+      </Box>
+
       <Dialog open={isDialogOpen} onClose={handleCloseDialog}>
         <DialogTitle>Thanh toán thành công!</DialogTitle>
         <DialogContent>Cảm ơn bạn đã mua hàng.</DialogContent>

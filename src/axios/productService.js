@@ -1,21 +1,25 @@
 import axios from "./axios";
 
-export const getAllProductsService = () => {
-  return axios.get("/products");
+export const getAllProductsService = async (params) => {
+  // Make sure all query parameters are properly included
+  const { page, size, sortBy, sortDirection } = params;
+  return axios.get("/products", {
+    params: {
+      page,
+      size,
+      sortBy,
+      sortDirection
+    }
+  });
 };
-export const getProductsByCategoryService = async (category, page = 0, size = 12, sortOrder = 'asc') => {
-  try {
-    const response = await axios.get(`/products/category/${category}/all`, {
-      params: {
-        page,
-        size,
-        sortBy: 'price', 
-        sortDirection: sortOrder,
-      },
-    });
-    return response.data.data.content; 
-  } catch (error) {
-    console.error('Error fetching products by category:', error);
-    throw error;
-  }
+
+export const getProductsByCategoryService = async (category, page, size, sortBy, sortDirection) => {
+  return axios.get(`/products/category/${category}/all`, {
+    params: {
+      page,
+      size,
+      sortBy,
+      sortDirection
+    }
+  });
 };

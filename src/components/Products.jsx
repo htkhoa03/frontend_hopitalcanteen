@@ -86,7 +86,7 @@ const Product = ({ product, addToCart }) => {
           variant="contained"
           color="primary"
           onClick={() => handleAddToCart(product)}
-          disabled={product.quantity === 0}
+          disabled={product.stock?.quantity === 0}
           sx={{
             width: "100%",
             padding: "12px",
@@ -106,20 +106,6 @@ const Product = ({ product, addToCart }) => {
           {product.stock?.quantity === 0 ? "Hết hàng" : "Thêm vào giỏ"}
         </Button>
       </CardActions>
-
-      {/* Snackbar thông báo */}
-      <SnackbarNotification
-        open={isOutOfStock}
-        message="Sản phẩm đã hết hàng!"
-        severity="warning"
-        onClose={handleCloseSnackbar}
-      />
-      <SnackbarNotification
-        open={successMessage}
-        message="Đã thêm sản phẩm vào giỏ hàng!"
-        severity="success"
-        onClose={handleCloseSnackbar}
-      />
     </Card>
   );
 };

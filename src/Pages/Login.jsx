@@ -23,19 +23,24 @@ const Login = () => {
 
     try {
       let res;
+      let role;
       if (cardNumber) {
         res = await handleLogin({ cardNumber });
         const { accessToken } = res.data;
         localStorage.setItem("accessToken", accessToken);
-        
+        role = "PATIENT";
+        localStorage.setItem("role", role);
         navigate("/home", { replace: true });
-        console.log(accessToken)
+        console.log(accessToken);
       } else {
         res = await handleLogin({ username, password });
         const { accessToken } = res.data;
         localStorage.setItem("accessToken", accessToken);
+        role = "USER";
+        localStorage.setItem("role", role);
         navigate("/management/management-home", { replace: true });
       }
+      console.log(`AccessToken: ${localStorage.getItem("accessToken")}, Role: ${role}`);
     } catch (error) {
       if (error.response && error.response.data.message) {
         setError(error.response.data.message);
@@ -66,7 +71,7 @@ const Login = () => {
         <form onSubmit={handleSubmit}>
           <Box sx={{ textAlign: "center", marginBottom: 3 }}>
             <img
-              src="../../hopitallogo.png"
+              src="../../logobv.png"
               alt="Logo"
               style={{
                 width: "120px",
@@ -136,10 +141,10 @@ const Login = () => {
               fontWeight: "bold",
               textTransform: "none",
               fontSize: "16px",
-              backgroundColor: "#67e4ff",
+              backgroundColor: "#33b2e7",
 
               "&:hover": {
-                backgroundColor: "#45c8e6",
+                backgroundColor: "#3CA4D6",
                 boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.2)",
               },
             }}
