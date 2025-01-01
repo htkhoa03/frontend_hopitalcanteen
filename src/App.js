@@ -16,6 +16,7 @@ import AccountingManagement from "./components/componentManagement/AccountingMan
 import CategoryManagament from "./components/componentManagement/CategoryManagament";
 import UserPage from "./Pages/User";
 import PatientPage from "./Pages/Patient";
+import DatePickerProvider from "./components/DatePickerProvider";
 
 // Component Loading
 const Loading = () => <div>Loading...</div>;
@@ -47,6 +48,7 @@ function AppWithNavigation() {
   return (
     <div>
       {loading && <Loading />}
+      <DatePickerProvider>
       <Layout>
         <Routes>
           {/* Public Routes */}
@@ -67,6 +69,7 @@ function AppWithNavigation() {
           </Route>
         </Routes>
       </Layout>
+      </DatePickerProvider>
     </div>
   );
 }

@@ -128,11 +128,11 @@ const CategoryManagement = () => {
         sx={{ boxShadow: 3, borderRadius: "8px" }}
       >
         <Table>
-          <TableHead sx={{ backgroundColor: "#f0f0f0" }}>
+          <TableHead sx={{ backgroundColor: "#1976d2" }}>
             <TableRow>
-              <TableCell align="center">ID danh mục</TableCell>
-              <TableCell align="center">Tên danh mục</TableCell>
-              <TableCell align="center">Hành động</TableCell>
+              <TableCell align="center" sx={{color: "white"}}>ID danh mục</TableCell>
+              <TableCell align="center" sx={{color: "white"}}>Tên danh mục</TableCell>
+              <TableCell align="center" sx={{color: "white"}}>Hành động</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>

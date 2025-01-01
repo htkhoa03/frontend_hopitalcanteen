@@ -85,7 +85,7 @@ const ProductManagement = () => {
   useEffect(() => {
     fetchProducts();
     fetchCategories();
-  }, []);
+  }, [page]);
 
   useEffect(() => {
     const lowercasedSearch = searchTerm.toLowerCase();
@@ -181,6 +181,7 @@ const ProductManagement = () => {
     XLSX.utils.book_append_sheet(wb, ws, "Sản phẩm");
     XLSX.writeFile(wb, "Danh_sach_san_pham.xlsx");
   };
+
   return (
     <Box
       sx={{
@@ -245,15 +246,15 @@ const ProductManagement = () => {
         sx={{ boxShadow: 3, borderRadius: "8px" }}
       >
         <Table>
-          <TableHead sx={{ backgroundColor: "#f0f0f0" }}>
+          <TableHead sx={{ backgroundColor: "#1976d2" }}>
             <TableRow>
-              <TableCell align="center">Tên sản phẩm</TableCell>
-              <TableCell align="center">Hình ảnh</TableCell>
-              <TableCell align="center">Giá</TableCell>
-              <TableCell align="center">Đơn vị tính</TableCell>
-              <TableCell align="center">Số lượng</TableCell>
-              <TableCell align="center">Danh mục</TableCell>
-              <TableCell align="center">Hành động</TableCell>
+              <TableCell align="center" sx={{color: "white"}}>Tên sản phẩm</TableCell>
+              <TableCell align="center" sx={{color: "white"}}>Hình ảnh</TableCell>
+              <TableCell align="center" sx={{color: "white"}}>Giá</TableCell>
+              <TableCell align="center" sx={{color: "white"}}>Đơn vị tính</TableCell>
+              <TableCell align="center" sx={{color: "white"}}>Số lượng</TableCell>
+              <TableCell align="center" sx={{color: "white"}}>Danh mục</TableCell>
+              <TableCell align="center" sx={{color: "white"}}>Hành động</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>

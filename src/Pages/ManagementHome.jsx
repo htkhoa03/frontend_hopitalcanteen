@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Card,
@@ -6,15 +6,15 @@ import {
   Grid,
   Typography,
   Container,
-  Select,
-  MenuItem,
   FormControl,
-  InputLabel,
 } from "@mui/material";
 import { styled } from "@mui/system";
 import InventoryIcon from "@mui/icons-material/Inventory";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import dayjs from "dayjs";
+import axios from "../axios/axios"; // Import axios instance
 
 const StyledCard = styled(Card)(({ theme, bgcolor }) => ({
   height: "100%",
@@ -46,12 +46,27 @@ const DashboardHeader = styled(Box)(({ theme }) => ({
 }));
 
 const ManagementDashboard = () => {
-  const [timeframe, setTimeframe] = useState("weekly");
+  const [startDate, setStartDate] = useState(dayjs().startOf("month"));
+  const [endDate, setEndDate] = useState(dayjs());
+  const [statistics, setStatistics] = useState({
+    totalProducts: 0,
+    totalOrders: 0,
+    totalRevenue: 0,
+  });
 
-
-  const handleTimeframeChange = (event) => {
-    setTimeframe(event.target.value);
+  const fetchStatistics = async () => {
+    try {
+      const res = await axios.get("/statistics/dashboard");
+      const { totalProductsSold, totalOrders, totalRevenue } = res.data.data;
+      setStatistics({ totalProductsSold, totalOrders, totalRevenue });
+    } catch (error) {
+      console.error("Error fetching dashboard statistics:", error);
+    }
   };
+
+  useEffect(() => {
+    fetchStatistics();
+  }, []);
 
   return (
     <Container maxWidth="lg" sx={{ marginTop: 10 }}>
@@ -68,20 +83,22 @@ const ManagementDashboard = () => {
               Management Dashboard
             </Typography>
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid item xs={6} md={3}>
             <FormControl fullWidth>
-              <InputLabel id="timeframe-select-label">Thời gian</InputLabel>
-              <Select
-                labelId="timeframe-select-label"
-                value={timeframe}
-                label="Timeframe"
-                onChange={handleTimeframeChange}
-              >
-                <MenuItem value="daily">Hôm nay</MenuItem>
-                <MenuItem value="weekly">Tuần này</MenuItem>
-                <MenuItem value="monthly">Tháng này</MenuItem>
-                <MenuItem value="yearly">Năm nay</MenuItem>
-              </Select>
+              <DatePicker
+                label="Ngày bắt đầu"
+                value={startDate}
+                onChange={(newValue) => setStartDate(newValue)}
+              />
+            </FormControl>
+          </Grid>
+          <Grid item xs={6} md={3}>
+            <FormControl fullWidth>
+              <DatePicker
+                label="Ngày kết thúc"
+                value={endDate}
+                onChange={(newValue) => setEndDate(newValue)}
+              />
             </FormControl>
           </Grid>
         </Grid>
@@ -102,7 +119,7 @@ const ManagementDashboard = () => {
                 fontWeight="bold"
                 gutterBottom
               >
-                {/* Dynamic Data Here */}
+                {statistics?.totalProductsSold}
               </Typography>
               <Typography
                 variant="h6"
@@ -130,7 +147,7 @@ const ManagementDashboard = () => {
                 fontWeight="bold"
                 gutterBottom
               >
-                {/* Dynamic Data Here */}
+                {statistics.totalOrders}
               </Typography>
               <Typography
                 variant="h6"
@@ -158,7 +175,7 @@ const ManagementDashboard = () => {
                 fontWeight="bold"
                 gutterBottom
               >
-                {/* Dynamic Data Here */}
+                {statistics.totalRevenue.toLocaleString()} Đ
               </Typography>
               <Typography
                 variant="h6"

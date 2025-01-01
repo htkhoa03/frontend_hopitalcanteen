@@ -17,15 +17,23 @@ const cartSlice = createSlice({
     setCartItems: (state, action) => {
       state.items = action.payload;
     },
-    removeCartItems: (state, action) =>{
+    removeCartItems: (state, action) => {
       const itemId = action.payload;
-      state.items = state.items.filter((item)=>item.id !== itemId) 
+    
+      // Kiểm tra xem itemId có tồn tại không
+      if (state.items.some((item) => item.id === itemId)) {
+        state.items = state.items.filter((item) => item.id !== itemId);
+      } else {
+        console.warn(`Item with ID ${itemId} not found in cart.`);
+      }
     },
+    
     clearCart: (state) => {
-      // state.cartId = "";
+      // Reset trạng thái giỏ hàng
       state.totalAmount = 0;
       state.items = [];
     },
+    
   },
 });
 

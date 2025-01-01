@@ -1,7 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Typography, TextField, Button, Box, Paper } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { handleLogin } from "../axios/loginService";
+import { setBalance, setPatients } from "../redux/patientSlice";
+import { getBalance } from "../axios/balanceService";
+import { useDispatch, useSelector } from "react-redux";
+import { getDataPatients } from "../axios/patientService";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -9,6 +13,7 @@ const Login = () => {
   const [cardNumber, setCardNumber] = useState("");
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -30,6 +35,12 @@ const Login = () => {
         localStorage.setItem("accessToken", accessToken);
         role = "PATIENT";
         localStorage.setItem("role", role);
+
+        const patientRes = await getDataPatients();
+
+        dispatch(setPatients(patientRes.data.data));
+        console.log("patient", patientRes);
+
         navigate("/home", { replace: true });
         console.log(accessToken);
       } else {
@@ -40,7 +51,9 @@ const Login = () => {
         localStorage.setItem("role", role);
         navigate("/management/management-home", { replace: true });
       }
-      console.log(`AccessToken: ${localStorage.getItem("accessToken")}, Role: ${role}`);
+      console.log(
+        `AccessToken: ${localStorage.getItem("accessToken")}, Role: ${role}`
+      );
     } catch (error) {
       if (error.response && error.response.data.message) {
         setError(error.response.data.message);

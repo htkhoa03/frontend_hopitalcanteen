@@ -1,25 +1,25 @@
 import { configureStore } from "@reduxjs/toolkit";
 import userSlice from "./userSlice";
 import cartSlice from "./cartSlice";
-import patientSlice from "./patientsSlice";
+import patientSlice from "./patientSlice";
 import storage from "redux-persist/lib/storage";
 import { persistReducer, persistStore } from "redux-persist";
 
 const userPersistConfig = {
   key: "user",
   storage,
-  whitelist: ["login", "username", "user"],
+  whitelist: ["login"],
 };
 
 const patientPersistConfig = {
   key: "patient",
   storage,
-  whilelist: ["login", "cardNumber"],
+  whitelist: ["login", "cardNumber"],
 };
+
 const cartPersistConfig = {
   key: "cart",
   storage,
-  whilelist: ["cartId"],
 };
 
 const persistedUserReducer = persistReducer(userPersistConfig, userSlice);

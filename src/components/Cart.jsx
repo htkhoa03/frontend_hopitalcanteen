@@ -31,27 +31,25 @@ import {
   setCartId,
 } from "../redux/cartSlice";
 import { createOrderAPI } from "../axios/orderService";
-import { fetchPatient } from "../redux/patientsSlice";
+
 import useDebounce from "../hooks/useDeBounce";
+import { setPatients } from "../redux/patientSlice";
 const Cart = () => {
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [isErrorDialogOpen, setErrorDialogOpen] = useState(false);
   const dispatch = useDispatch();
-  
 
   const cartItems = useSelector((state) => state.cart.items);
   const cartId = useSelector((state) => state.cart?.cartId);
   const totalAmount = useSelector((state) => state.cart.totalAmount);
+  const patientOrder = useSelector(
+    (state) => state.patient?.patient?.patientId
+  );
 
-  const patient = useSelector((state) => state.patients?.patient);
-  const patientId = patient?.patientId;
+  
 
   const [quantityChanges, setQuantityChanges] = useState({});
   const debouncedQuantityChanges = useDebounce(quantityChanges, 50);
-
-  useEffect(() => {
-    dispatch(fetchPatient(patientId));
-  }, [dispatch, patientId]);
 
   const fetchCartData = async () => {
     try {
@@ -80,29 +78,26 @@ const Cart = () => {
 
   const handleClearAllCart = async () => {
     try {
-      await clearCartAPI(cartId); // Xóa giỏ hàng
-      dispatch(clearCart(cartId)); // Cập nhật Redux store
-      
-      // Tạo giỏ hàng mới sau khi xóa
-      const newCart = await getCartAPI();
-      dispatch(setCartId(newCart.id)); 
-      await fetchCartData(); 
+      await clearCartAPI(cartId);
+      dispatch(clearCart(cartId));
+
+      await fetchCartData();
     } catch (error) {
       console.error("Error clearing cart:", error);
     }
   };
-  
 
   const handleCheckoutClick = async () => {
     try {
-      await createOrderAPI(patientId);
+      const res = await createOrderAPI(patientOrder);
       setDialogOpen(true);
+      dispatch(setPatients(res.patientOrder));
+      console.log("patientId", patientOrder);
     } catch (error) {
       console.error("Error during checkout:", error);
       setErrorDialogOpen(true);
     }
   };
-
 
   useEffect(() => {
     const updateQuantities = async () => {
@@ -150,7 +145,7 @@ const Cart = () => {
         overflowY: "auto",
         padding: "20px",
         borderRadius: "12px",
-        
+
         backgroundColor: "#fff",
       }}
     >

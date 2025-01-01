@@ -5,5 +5,5 @@ export const getDataUsers = () =>{
 }
 export const getAllUsers = async () =>{
     const res = await axios.get("/users/all")
-    return res.data.data;
+    return res.data.data.content;
 }

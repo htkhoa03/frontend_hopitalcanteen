@@ -7,10 +7,11 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import ReceiptIcon from "@mui/icons-material/Receipt";
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import CategoryIcon from "@mui/icons-material/Category";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const SideBar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const menuItems = [
     {
@@ -66,30 +67,34 @@ const SideBar = () => {
       }}
     >
       <List>
-        {menuItems.map((item, index) => (
-          <ListItem
-            key={index}
-            button
-            onClick={() => navigate(item.path)}
-            sx={{
-              padding: "16px",
-              transition: "background-color 0.3s ease",
-              "&:hover": {
-                backgroundColor: "#64b5e3",
-              },
-            }}
-          >
-            <ListItemIcon
-              sx={{
-                color: "#345DA7",
-              }}
-            >
-              {item.icon}
-            </ListItemIcon>
-            <ListItemText primary={item.text} />
-          </ListItem>
-        ))}
-      </List>
+  {menuItems.map((item, index) => (
+    <ListItem
+      key={index}
+      button
+      onClick={() => navigate(item.path)}
+      sx={{
+        padding: "16px",
+        transition: "background-color 0.3s ease",
+        backgroundColor: location.pathname === item.path ? "#1565c0" : "transparent",
+        color: location.pathname === item.path ? "#fff" : "inherit",
+        "&:hover": {
+          backgroundColor: location.pathname === item.path ? "#1565c0" : "#64b5e3",
+          color: location.pathname === item.path ? "#fff" : "#fff",
+        },
+      }}
+    >
+      <ListItemIcon
+        sx={{
+          color: location.pathname === item.path ? "#fff" : "#345DA7",
+        }}
+      >
+        {item.icon}
+      </ListItemIcon>
+      <ListItemText primary={item.text} />
+    </ListItem>
+  ))}
+</List>
+
     </Box>
   );
 };

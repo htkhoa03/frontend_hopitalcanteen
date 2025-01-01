@@ -26,7 +26,6 @@ import { getCartAPI, addToCartAPI } from "../axios/cartService";
 import axios from "../axios/axios";
 import { setCartId, setCartItems, setTotalAmount } from "../redux/cartSlice";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchPatient } from "../redux/patientsSlice";
 
 const Home = () => {
   const [selectedCategory, setSelectedCategory] = useState("Tất cả");
@@ -115,7 +114,7 @@ const Home = () => {
         if (patientData.cart && patientData.cart.id) {
           const cartId = patientData.cart.id;
           dispatch(setCartId(cartId));
-          dispatch(fetchPatient(patientData.patientId));
+          
           await fetchCart(cartId);
         } else {
           console.error("Cart ID is missing in patient data.");
@@ -129,18 +128,17 @@ const Home = () => {
 
   const addToCart = async (product) => {
     try {
-      let currentCartId = cartId; // Lấy giá trị cartId từ Redux store
-  
-      if (!currentCartId || currentCartId === "null") {
-        // Gọi API tạo giỏ hàng nếu chưa có
-        const newCart = await getCartAPI();
-        dispatch(setCartId(newCart.id));
-        currentCartId = newCart.id; // Cập nhật biến local
-        console.log("New Cart Created:", newCart);
-      }
-  
-      await addToCartAPI(product.id, 1); // Thêm sản phẩm vào giỏ hàng
-      await fetchCart(currentCartId); // Lấy dữ liệu giỏ hàng
+      
+        
+        
+        
+    
+      // Thêm sản phẩm vào giỏ hàng hiện tại
+      await addToCartAPI( product.id, 1); // Đảm bảo API này nhận đúng tham số (cartId, productId, quantity)
+      await fetchCart(cartId);
+      dispatch(setCartId(cartId));  
+      await getCartAPI(cartId);
+      
       setSnackbar({
         open: true,
         message: "Thêm vào giỏ hàng thành công!",
@@ -148,6 +146,8 @@ const Home = () => {
       });
     } catch (error) {
       console.error("Error adding to cart:", error);
+  
+      // Hiển thị thông báo lỗi
       setSnackbar({
         open: true,
         message: "Không thể thêm sản phẩm vào giỏ hàng.",
@@ -155,6 +155,7 @@ const Home = () => {
       });
     }
   };
+  
   
 
   const toggleCartVisibility = () => setIsCartVisible((prev) => !prev);

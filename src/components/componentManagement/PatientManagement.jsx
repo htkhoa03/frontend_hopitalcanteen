@@ -17,12 +17,22 @@ import {
   Card,
   CardContent,
   IconButton,
+  Pagination,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from "@mui/material";
-import { styled } from "@mui/system";
-import { Edit, Delete, Visibility, PersonAdd } from "@mui/icons-material";
-import { getAllPatients, getAllPatientService} from "../../axios/patientService";
+import { display, styled } from "@mui/system";
+import { Edit, Delete, PersonAdd, MonetizationOn } from "@mui/icons-material";
+import addPatient, {
+  getAllPatients,
+  getAllPatientService,
+  updatePatient,
+  deletePatient,
 
-
+} from "../../axios/patientService";
 
 const StyledModal = styled(Modal)(({ theme }) => ({
   display: "flex",
@@ -41,68 +51,85 @@ const ModalContent = styled(Box)(({ theme }) => ({
 }));
 
 const PatientManagement = () => {
-
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-  const [selectedPatient, setSelectedPatient] = useState(null);
-  const [patients, setPatients] = useState([]);
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [patients, setPatients] = useState(null);
   const [newPatient, setNewPatient] = useState({
-    name: "",
-    age: "",
-    contact: "",
-    additionalNotes: "",
+    cardNumber: "",
+    fullName: "",
+    email: "",
+    departments: "",
+    patientBalance: { balance: 0 },
   });
-  
-  // Fetch API patient
+
+  const [updatePatient, setUpdatePatient] = useState([]);
+  const [deletePatientId, setDeletePatientId] = useState(null);
+
+  const [page, setPage] = useState(0);
+  const [size, setSize] = useState(10);
+  const [totalPages, setTotalPages] = useState(0);
+
+
+  const fetchPatients = async () => {
+    try {
+      const res = await getAllPatientService(page, size);
+      console.log(res);
+      setPatients(res.content);
+      setTotalPages(res.totalPages);
+      console.log("bệnh nhân", res);
+    } catch (error) {
+      console.error("Error fetching patients:", error);
+    }
+  };
+ 
+
+
   useEffect(() => {
-    const fetchPatients = async () => {
+    fetchPatients();
+  }, [page, size]);
+
+  const handleAddPatient = async () => {
+    try {
+      const response = await addPatient(newPatient);
+      fetchPatients();
+      console.log("Patient added successfully:", response);
+    } catch (error) {
+      console.error("Failed to add patient:", error);
+    }
+  };
+
+  const handleUpdatePatient = async (patientId) => {
+    try {
+      const response = await updatePatient(patientId,updatePatient);
+      setIsUpdateModalOpen(true);
+      fetchPatients();
+      console.log("Patient updated successfully:", response);
+    } catch (error) {
+      console.error("Failed to update patient:", error);
+    }
+  };
+  const handleDeletePatient = async (patientId) => {
       try {
-        const res = await getAllPatientService();
-        setPatients(res);
-        console.log("bệnh nhân",res)
+        await deletePatient(patientId);
+        setIsDeleteModalOpen(true);
+        fetchPatients();
       } catch (error) {
-        console.error("Error fetching patients:", error);
+        console.log("Failed to delete patient",error)
       }
     };
-    fetchPatients();
-  }, []);
-  const handleAddPatient = () => {
-    // if (!newPatient.name || !newPatient.age || !newPatient.contact) return;
 
-    // const patient = {
-    //   id: `P${String(patients.length + 1).padStart(3, "0")}`,
-    //   ...newPatient,
-    //   medicalHistory: "",
-    };
+  const handleWithdrawMoney = () => {};
 
-  //   setPatients([...patients, patient]);
-  //   setNewPatient({ name: "", age: "", contact: "", additionalNotes: "" });
-  //   setIsAddModalOpen(false);
-  // };
-
-  // const handleDeletePatient = (id) => {
-  //   setPatients(patients.filter((patient) => patient.id !== id));
-  // };
-
-  // const handleViewPatient = (patient) => {
-  //   setSelectedPatient(patient);
-  //   setIsViewModalOpen(true);
-  // };
-
-  // const filteredPatients = patients.filter(
-  //   (patient) =>
-  //     patient.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-  //     patient.contact.includes(searchQuery)
-  // );
-  const handleViewPatient = (patient) => {
-    setSelectedPatient(patient); // Cập nhật thông tin bệnh nhân được chọn
-    setIsViewModalOpen(true); // Mở modal hiển thị chi tiết
-  };
-  
   if (!patients) {
     return <Typography>Loading...</Typography>;
   }
+
+  const handlePageChange = (event, value) => {
+    setPage(value - 1);
+  };
+
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Box
@@ -142,7 +169,8 @@ const PatientManagement = () => {
               <TableCell sx={{ color: "white" }}>Mã bệnh nhân</TableCell>
               <TableCell sx={{ color: "white" }}>Tên bệnh nhân</TableCell>
               <TableCell sx={{ color: "white" }}>Email</TableCell>
-              <TableCell sx={{ color: "white" }}>Số điện thoại</TableCell>
+              <TableCell sx={{ color: "white" }}>Department</TableCell>
+              <TableCell sx={{ color: "white" }}>Số dư tài khoản</TableCell>
               <TableCell sx={{ color: "white" }}>Hành động</TableCell>
             </TableRow>
           </TableHead>
@@ -152,20 +180,30 @@ const PatientManagement = () => {
                 <TableCell>{patient.cardNumber}</TableCell>
                 <TableCell>{patient.fullName}</TableCell>
                 <TableCell>{patient.email}</TableCell>
-                <TableCell>{patient.phoneNumber}</TableCell>
-                <TableCell>
+                <TableCell>{patient.departments.departmentName}</TableCell>
+                <TableCell>{patient?.patientBalance?.balance}</TableCell>
+                <TableCell align="center">
                   <IconButton
-                    onClick={() => handleViewPatient(patient)}
-                    color="primary"
+                    color="success"
+                    onClick={() => handleWithdrawMoney(patient.id)}
                   >
-                    <Visibility />
+                    <MonetizationOn />
                   </IconButton>
-                  <IconButton color="primary">
+                  <IconButton
+                    color="primary"
+                    onClick={() => {
+                      setUpdatePatient(patient);
+                      setIsUpdateModalOpen(true);
+                    }}
+                  >
                     <Edit />
                   </IconButton>
                   <IconButton
-                    // onClick={() => handleDeletePatient(patient.id)}
-                    color="error"
+                  color="error"
+                  onClick={() => {
+                    setDeletePatientId(patient.patientId);
+                    setIsDeleteModalOpen(true);
+                  }}
                   >
                     <Delete />
                   </IconButton>
@@ -175,6 +213,22 @@ const PatientManagement = () => {
           </TableBody>
         </Table>
       </TableContainer>
+      {/* change page */}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          marginTop: "16px",
+        }}
+      >
+        <Pagination
+          count={totalPages}
+          page={page + 1}
+          onChange={handlePageChange}
+          color="primary"
+        />
+      </Box>
 
       <StyledModal
         open={isAddModalOpen}
@@ -182,39 +236,19 @@ const PatientManagement = () => {
       >
         <ModalContent>
           <Typography variant="h6" sx={{ mb: 3 }}>
-            Add New Patient
+            Thêm Bệnh Nhân
           </Typography>
           <Grid container spacing={3}>
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                label="Patient Name"
-                value={newPatient.name}
+                label="Patient Code"
+                value={newPatient.cardNumber} // Hiển thị giá trị của cardNumber
                 onChange={(e) =>
-                  setNewPatient({ ...newPatient, name: e.target.value })
-                }
-                required
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Age"
-                type="number"
-                value={newPatient.age}
-                onChange={(e) =>
-                  setNewPatient({ ...newPatient, age: e.target.value })
-                }
-                required
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Contact Number"
-                value={newPatient.contact}
-                onChange={(e) =>
-                  setNewPatient({ ...newPatient, contact: e.target.value })
+                  setNewPatient({
+                    ...newPatient,
+                    cardNumber: e.target.value, // Cập nhật giá trị cardNumber (vẫn là chuỗi)
+                  })
                 }
                 required
               />
@@ -222,16 +256,62 @@ const PatientManagement = () => {
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                label="Additional Notes"
-                multiline
-                rows={4}
-                value={newPatient.additionalNotes}
+                label="Patient Name"
+                value={newPatient.fullName}
                 onChange={(e) =>
                   setNewPatient({
                     ...newPatient,
-                    additionalNotes: e.target.value,
+                    fullName: e.target.value, // Cập nhật giá trị cardNumber (vẫn là chuỗi)
                   })
                 }
+                required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Email"
+                type="email"
+                value={newPatient.email}
+                onChange={(e) =>
+                  setNewPatient({ ...newPatient, email: e.target.value })
+                }
+                required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+              fullWidth
+              label="Department"
+              value={newPatient.departments?.departmentName}
+              onChange={(e) =>
+                  setNewPatient({
+                    ...newPatient,
+                    departments: {
+                      ...newPatient.departmentName,
+                      departmentName: e.target.value,
+                    },
+                  })
+                }
+              required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Balance"
+                type="number"
+                value={newPatient?.patientBalance?.balance || ""}
+                onChange={(e) =>
+                  setNewPatient({
+                    ...newPatient,
+                    patientBalance: {
+                      ...newPatient.patientBalance,
+                      balance: e.target.value,
+                    },
+                  })
+                }
+                required
               />
             </Grid>
           </Grid>
@@ -241,61 +321,137 @@ const PatientManagement = () => {
             <Button variant="outlined" onClick={() => setIsAddModalOpen(false)}>
               Cancel
             </Button>
-            <Button variant="contained" onClick={handleAddPatient}>
+            <Button
+              variant="contained"
+              onClick={() => handleAddPatient(newPatient)}
+            >
               Submit
             </Button>
           </Box>
         </ModalContent>
       </StyledModal>
 
+      {/* update patient */}
+
       <StyledModal
-        open={isViewModalOpen}
-        onClose={() => setIsViewModalOpen(false)}
+        open={isUpdateModalOpen}
+        onClose={() => setIsUpdateModalOpen(false)}
       >
         <ModalContent>
-          {selectedPatient && (
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Patient Details
-                </Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6}>
-                    <Typography variant="subtitle2">Mã bệnh nhân</Typography>
-                    <Typography>{selectedPatient.cardNumber}</Typography>
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <Typography variant="subtitle2">tên bệnh nhân</Typography>
-                    <Typography>{selectedPatient.fullName}</Typography>
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <Typography variant="subtitle2">Ngày sinh</Typography>
-                    <Typography>{selectedPatient.age}</Typography>
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <Typography variant="subtitle2">Số điện thoại</Typography>
-                    <Typography>{selectedPatient.phoneNumber}</Typography>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Typography variant="subtitle2">Tài khoản</Typography>
-                    <Typography>100000</Typography>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Typography variant="subtitle2">Địa chỉ</Typography>
-                    <Typography>{selectedPatient.address}</Typography>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Typography variant="subtitle2">
-                      Additional Notes
-                    </Typography>
-                    <Typography>{selectedPatient.additionalNotes}</Typography>
-                  </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
-          )}
+          <Typography variant="h6" sx={{ mb: 3 }}>
+            Sửa thông tin bệnh nhân
+          </Typography>
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Patient Code"
+                value={updatePatient.cardNumber}
+                onChange={(e) =>
+                  setNewPatient({
+                    ...updatePatient,
+                    cardNumber: e.target.value, 
+                  })
+                }
+                required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Patient Name"
+                value={updatePatient.fullName}
+                onChange={(e) =>
+                  setNewPatient({
+                    ...updatePatient,
+                    fullName: e.target.value, // Cập nhật giá trị cardNumber (vẫn là chuỗi)
+                  })
+                }
+                required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Email"
+                type="email"
+                value={updatePatient.email}
+                onChange={(e) =>
+                  setNewPatient({ ...newPatient, email: e.target.value })
+                }
+                required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+              fullWidth
+              label="Department"
+              value={updatePatient.departments?.departmentName}
+              onChange={(e) =>
+                  setNewPatient({
+                    ...newPatient,
+                    departments: {
+                      ...newPatient.departmentName,
+                      departmentName: e.target.value,
+                    },
+                  })
+                }
+              required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Balance"
+                type="number"
+                value={updatePatient?.patientBalance?.balance || ""}
+                onChange={(e) =>
+                  setNewPatient({
+                    ...updatePatient,
+                    patientBalance: {
+                      ...updatePatient.patientBalance,
+                      balance: e.target.value,
+                    },
+                  })
+                }
+                required
+              />
+            </Grid>
+          </Grid>
+          <Box
+            sx={{ mt: 3, display: "flex", justifyContent: "flex-end", gap: 2 }}
+          >
+            <Button variant="outlined" onClick={() => setIsUpdateModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              onClick={() => handleUpdatePatient(updatePatient)}
+            >
+              Submit
+            </Button>
+          </Box>
         </ModalContent>
       </StyledModal>
+
+      {/* Delete patient */}
+      <Dialog
+        open={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+      >
+        <DialogTitle >Xác nhận xóa</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Bạn có chắc chắn muốn xóa bệnh nhân này không?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setIsDeleteModalOpen(false)}>Hủy</Button>
+          <Button onClick={()=>handleDeletePatient(deletePatient)} color="error">
+            Xóa
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };
