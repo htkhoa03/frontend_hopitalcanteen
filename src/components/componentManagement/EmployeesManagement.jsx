@@ -12,6 +12,7 @@ import {
   IconButton,
   Paper,
   Toolbar,
+  Pagination,
 } from "@mui/material";
 import { Edit, Delete } from "@mui/icons-material";
 import * as XLSX from "xlsx";
@@ -20,17 +21,22 @@ import { getAllUsers } from "../../axios/userService";
 const EmployeeManagement = () => {
   const [users, setUsers] = useState(null);
 
+  const [page, setPage] = useState(0);
+  const [size, setSize] = useState(10);
+  const [totalPages, setTotalPages] = useState(0);
+
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const res = await getAllUsers();
+        const res = await getAllUsers(page, size);
         setUsers(res);
+        setTotalPages(res.totalPages);
       } catch (error) {
         console.error("Error fetching users:", error);
       }
     };
     fetchUsers();
-  }, []);
+  }, [page, size]);
 
   const exportToExcel = () => {
     const ws = XLSX.utils.json_to_sheet(users);
@@ -39,6 +45,9 @@ const EmployeeManagement = () => {
     XLSX.writeFile(wb, "Danh_sach_nhan_vien.xlsx");
   };
 
+  const handlePageChange = (event, value) => {
+    setPage(value);
+  };
   return (
     <Box
       sx={{
@@ -67,8 +76,6 @@ const EmployeeManagement = () => {
           variant="h4"
           sx={{
             color: "#1565c0",
-            
-           
           }}
         >
           Quản lý nhân viên
@@ -106,22 +113,40 @@ const EmployeeManagement = () => {
         <Table>
           <TableHead sx={{ backgroundColor: "#1565c0" }}>
             <TableRow>
-              <TableCell align="center" sx={{ color: "#fff", fontWeight: "bold" }}>
+              <TableCell
+                align="center"
+                sx={{ color: "#fff", fontWeight: "bold" }}
+              >
                 Tên nhân viên
               </TableCell>
-              <TableCell align="center" sx={{ color: "#fff", fontWeight: "bold" }}>
+              <TableCell
+                align="center"
+                sx={{ color: "#fff", fontWeight: "bold" }}
+              >
                 Vai trò
               </TableCell>
-              <TableCell align="center" sx={{ color: "#fff", fontWeight: "bold" }}>
+              <TableCell
+                align="center"
+                sx={{ color: "#fff", fontWeight: "bold" }}
+              >
                 Khoa
               </TableCell>
-              <TableCell align="center" sx={{ color: "#fff", fontWeight: "bold" }}>
+              <TableCell
+                align="center"
+                sx={{ color: "#fff", fontWeight: "bold" }}
+              >
                 Username
               </TableCell>
-              <TableCell align="center" sx={{ color: "#fff", fontWeight: "bold" }}>
+              <TableCell
+                align="center"
+                sx={{ color: "#fff", fontWeight: "bold" }}
+              >
                 Password
               </TableCell>
-              <TableCell align="center" sx={{ color: "#fff", fontWeight: "bold" }}>
+              <TableCell
+                align="center"
+                sx={{ color: "#fff", fontWeight: "bold" }}
+              >
                 Hành động
               </TableCell>
             </TableRow>
@@ -147,6 +172,22 @@ const EmployeeManagement = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          marginTop: "16px",
+        }}
+      >
+        <Pagination
+          count={totalPages}
+          page={page + 1}
+          onChange={(event, value) => handlePageChange(event, value)}
+          color="primary"
+        />
+      </Box>
     </Box>
   );
 };

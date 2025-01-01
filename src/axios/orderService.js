@@ -11,8 +11,10 @@ export const getAllOrders = async () => {
   return response.data.data.content;
 };
 // get order by status
-export const getAllOrdersByStatus = async (orderStatus) => {
-  const response = await axios.get(`/orders/all?status=${orderStatus}`);
+export const getAllOrdersByStatus = async (orderStatus, page =0, size= 10, sortBy="orderDate", sortDirection = "asc") => {
+  const response = await axios.get(`/orders/all?status=${orderStatus}`,{
+    params: { page, size, sortBy, sortDirection }
+  });
   return response.data.data.content;
 };
 

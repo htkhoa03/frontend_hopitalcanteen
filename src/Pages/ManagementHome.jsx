@@ -6,12 +6,16 @@ import {
   Grid,
   Typography,
   Container,
+  Select,
+  MenuItem,
   FormControl,
+  InputLabel,
 } from "@mui/material";
 import { styled } from "@mui/system";
 import InventoryIcon from "@mui/icons-material/Inventory";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
+import { getDashboard } from "../axios/dashboardService";
 
 const StyledCard = styled(Card)(({ theme, bgcolor }) => ({
   height: "100%",
@@ -43,11 +47,83 @@ const DashboardHeader = styled(Box)(({ theme }) => ({
 }));
 
 const ManagementDashboard = () => {
-  const [timeframe, setTimeframe] = useState("weekly");
+  const [timeframe, setTimeframe] = useState("daily");
+  const [dashboardData, setDashboardData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
+  const getDateRange = (timeframe) => {
+    const now = new Date();
+    let start = new Date();
+    let end = new Date();
+  
+    switch (timeframe) {
+      case "daily":
+        // Cùng một ngày cho cả start và end
+        start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        end = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        break;
+  
+      case "weekly":
+        // Tuần này: từ thứ 2 đến chủ nhật
+        const currentDay = start.getDay(); // 0 = Chủ nhật, 1 = Thứ 2,...
+        const monday = currentDay === 0 ? -6 : 1 - currentDay; // Tính số ngày đến thứ 2
+        start = new Date(now.setDate(now.getDate() + monday));
+        end = new Date(start);
+        end.setDate(start.getDate() + 6); // Chủ nhật
+        break;
+  
+      case "monthly":
+        // Tháng này: từ ngày 1 đến ngày cuối của tháng
+        start = new Date(now.getFullYear(), now.getMonth(), 1);
+        end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        break;
+  
+      case "yearly":
+        // Năm này: từ 1/1 đến 31/12
+        start = new Date(now.getFullYear(), 0, 1);
+        end = new Date(now.getFullYear(), 11, 31);
+        break;
+  
+      default:
+        break;
+    }
+  
+    // Format dates to YYYY-MM-DD
+    const formatDate = (date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+  
+    return {
+      startDate: formatDate(start),
+      endDate: formatDate(end)
+    };
+  };
 
-  const handleTimeframeChange = (event) => {
-    setTimeframe(event.target.value);
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const dateRange = getDateRange(timeframe);
+      const data = await getDashboard(dateRange);
+      setDashboardData(data);
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [timeframe]);
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND'
+    }).format(amount);
   };
 
   return (
@@ -65,23 +141,14 @@ const ManagementDashboard = () => {
               Management Dashboard
             </Typography>
           </Grid>
-          <Grid item xs={6} md={3}>
-            <FormControl fullWidth>
-              <DatePicker
-                label="Ngày bắt đầu"
-                value={startDate}
-                onChange={(newValue) => setStartDate(newValue)}
-              />
-            </FormControl>
-          </Grid>
-          <Grid item xs={6} md={3}>
+          <Grid item xs={12} md={6}>
             <FormControl fullWidth>
               <InputLabel id="timeframe-select-label">Thời gian</InputLabel>
               <Select
                 labelId="timeframe-select-label"
                 value={timeframe}
                 label="Timeframe"
-                onChange={handleTimeframeChange}
+                onChange={(e) => setTimeframe(e.target.value)}
               >
                 <MenuItem value="daily">Hôm nay</MenuItem>
                 <MenuItem value="weekly">Tuần này</MenuItem>
@@ -108,7 +175,7 @@ const ManagementDashboard = () => {
                 fontWeight="bold"
                 gutterBottom
               >
-                {/* Dynamic Data Here */}
+                {dashboardData?.totalProductsSold || 0}
               </Typography>
               <Typography
                 variant="h6"
@@ -136,7 +203,7 @@ const ManagementDashboard = () => {
                 fontWeight="bold"
                 gutterBottom
               >
-                {/* Dynamic Data Here */}
+                {dashboardData?.totalOrders || 0}
               </Typography>
               <Typography
                 variant="h6"
@@ -164,7 +231,7 @@ const ManagementDashboard = () => {
                 fontWeight="bold"
                 gutterBottom
               >
-                {/* Dynamic Data Here */}
+                {dashboardData ? formatCurrency(dashboardData.totalRevenue) : formatCurrency(0)}
               </Typography>
               <Typography
                 variant="h6"

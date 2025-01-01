@@ -69,7 +69,7 @@ const PatientManagement = () => {
 
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(10);
-  const [totalPages, setTotalPages] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
 
   const fetchPatients = async () => {
@@ -127,7 +127,7 @@ const PatientManagement = () => {
   }
 
   const handlePageChange = (event, value) => {
-    setPage(value - 1);
+    setPage(value);
   };
 
   return (
@@ -224,8 +224,8 @@ const PatientManagement = () => {
       >
         <Pagination
           count={totalPages}
-          page={page + 1}
-          onChange={handlePageChange}
+          page={page+1}
+          onChange={(event, value) => handlePageChange(event, value)}
           color="primary"
         />
       </Box>
