@@ -16,12 +16,27 @@ import AccountingManagement from "./components/componentManagement/AccountingMan
 import CategoryManagament from "./components/componentManagement/CategoryManagament";
 import UserPage from "./Pages/User";
 import PatientPage from "./Pages/Patient";
-import DatePickerProvider from "./components/DatePickerProvider";
 
 // Component Loading
 const Loading = () => <div>Loading...</div>;
 
 function App() {
+  useEffect(() => {
+    // Kiểm tra token khi component mount
+    const checkAuth = () => {
+      const token = localStorage.getItem('accessToken');
+      if (token && isTokenExpired(token)) {
+        handleLogout();
+      }
+    };
+
+    checkAuth();
+
+    // Kiểm tra định kỳ mỗi phút
+    const interval = setInterval(checkAuth, 60000);
+
+    return () => clearInterval(interval);
+  }, []);
   return (
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
