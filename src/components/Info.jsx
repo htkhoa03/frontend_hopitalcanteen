@@ -46,8 +46,16 @@ const Info = ({ apiEndpoint, fields }) => {
     const fetchData = async () => {
       try {
         const response = await axios.get(apiEndpoint);
+        const rawData = response.data.data;
 
-        setData(response.data.data);
+        const formattedData = {
+          ...rawData,
+          "departments.departmentName":
+            rawData.departments?.departmentName || "N/A",
+          "patientBalance.balance": rawData.patientBalance?.balance || "N/A",
+        };
+
+        setData(formattedData);
       } catch (err) {
         console.error("Error fetching data:", err);
         setError("Unable to fetch data. Please try again.");
@@ -102,7 +110,11 @@ const Info = ({ apiEndpoint, fields }) => {
                   <Typography sx={{ fontWeight: "bold", width: "120px" }}>
                     {label}:
                   </Typography>
-                  <Typography>{data[key] || "N/A"}</Typography>
+                  <Typography>
+                    {key.includes(".")
+                      ? data?.[key.split(".")[0]]?.[key.split(".")[1]] || "N/A"
+                      : data?.[key] || "N/A"}
+                  </Typography>
                 </InfoContainer>
               ))}
             </Box>
@@ -112,18 +124,18 @@ const Info = ({ apiEndpoint, fields }) => {
           sx={{
             display: "flex",
             justifyContent: "right",
-            alignItems: "center", 
+            alignItems: "center",
           }}
         >
           <Button
             sx={{
-              backgroundColor:"#1565c0",
-              color:"#fff",
+              backgroundColor: "#1565c0",
+              color: "#fff",
               justifyContent: "center",
               textAlign: "center",
             }}
             onClick={handleLogout}
-            startIcon={<LogoutIcon />} 
+            startIcon={<LogoutIcon />}
           >
             Đăng xuất
           </Button>

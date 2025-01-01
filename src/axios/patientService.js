@@ -14,11 +14,7 @@ export const getAllPatientService = async (page = 0, size = 10, sortBy = "fullNa
 // add patient
 const addPatient = async (newPatient) => {
   try {
-    const response = await axios.post("/patients/add", newPatient, {
-      headers: {
-        "Content-Type": "application/json", 
-      },
-    });
+    const response = await axios.post("/patients/add", newPatient);
     return response.data.data.content;
   } catch (error) {
     console.error("Error adding patient:", error);
@@ -27,9 +23,9 @@ const addPatient = async (newPatient) => {
 };
 
 // update patients
-export const updatePatient = async (patientId, updatedPatient) => {
+export const updatePatientAPI = async (patientId, updatePatient) => {
   try {
-    const response = await axios.put(`/patients/${patientId}/update`, updatedPatient);
+    const response = await axios.put(`/patients/${patientId}/update`, updatePatient);
     return response.data.data.content; 
   } catch (error) {
     console.error("Error updating patient:", error);
@@ -37,12 +33,12 @@ export const updatePatient = async (patientId, updatedPatient) => {
   }
 };
 
-export const deletePatient = async (patientId, deletePatient) => {
+export const deletePatientAPI = async (patientId, deletePatient) => {
   try {
     const response = await axios.delete(`/patients/${patientId}/delete`, deletePatient);
-    return response.data.data.content; 
+    return response.data.data; 
   } catch (error) {
-    console.error("Error updating patient:", error);
+    console.error("Error delete patient:", error);
     throw error; 
   }
 };
