@@ -12,7 +12,7 @@ const AddEditItems = ({ open, onClose, onSubmit, category, setCategory }) => {
   return (
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>
-        {category ? "Chỉnh sửa danh mục" : "Thêm danh mục mới"}
+        {category ? "Thêm danh mục mới" : "Chỉnh sửa danh mục"}
       </DialogTitle>
       <DialogContent>
         <TextField

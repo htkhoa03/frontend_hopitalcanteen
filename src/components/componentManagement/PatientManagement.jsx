@@ -44,6 +44,11 @@ import { useDispatch, useSelector } from "react-redux";
 import SnackbarNotification from "../SnackbarNotification";
 import ViewPatient from "../ViewPatient";
 import { cleanDigitSectionValue } from "@mui/x-date-pickers/internals/hooks/useField/useField.utils";
+import {
+  topUpBalanceAPI,
+  withDrawBalanceAPI,
+} from "../../axios/balanceService";
+import BalanceModal from "./BalanceModal";
 
 const StyledModal = styled(Modal)(({ theme }) => ({
   display: "flex",
@@ -66,6 +71,7 @@ const PatientManagement = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isBalanceModalOpen, setIsBalanceModalOpen] = useState(false);
   const [patients, setPatients] = useState(null);
   const [newPatient, setNewPatient] = useState({
     cardNumber: "",
@@ -88,7 +94,7 @@ const PatientManagement = () => {
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
 
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false); 
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState(null);
 
   const [tempDepartmentsInput, setTempDepartmentsInput] = useState("");
@@ -104,7 +110,6 @@ const PatientManagement = () => {
     }
   };
 
-
   useEffect(() => {
     fetchPatients();
   }, [page, size]);
@@ -114,9 +119,9 @@ const PatientManagement = () => {
       const payload = {
         ...newPatient,
         departments: tempDepartmentsInput
-        .split(",")
-        .map((dept) => dept.trim()) 
-        .filter((dept) => dept.length > 0),
+          .split(",")
+          .map((dept) => dept.trim())
+          .filter((dept) => dept.length > 0),
       };
       await addPatient(payload);
       setSnackbarMessage("Patient added successfully!");
@@ -134,13 +139,12 @@ const PatientManagement = () => {
 
   const handleUpdatePatient = async (patientId) => {
     try {
-
       const payload = {
         ...updatePatient,
         departments: tempDepartmentsInput
-        .split(",")
-        .map((dept) => dept.trim()) 
-        .filter((dept) => dept.length > 0), 
+          .split(",")
+          .map((dept) => dept.trim())
+          .filter((dept) => dept.length > 0),
       };
       await updatePatientAPI(patientId, payload);
       setSnackbarMessage("Cập nhật thông tin bệnh nhân thành công!");
@@ -170,8 +174,6 @@ const PatientManagement = () => {
       console.log("Failed to delete patient", error);
     }
   };
-
-  const handleWithdrawMoney = () => {};
 
   if (!patients) {
     return <Typography>Loading...</Typography>;
@@ -250,7 +252,10 @@ const PatientManagement = () => {
                   </IconButton>
                   <IconButton
                     color="success"
-                    onClick={() => handleWithdrawMoney(patient.patientId)}
+                    onClick={() => {
+                      setSelectedPatient(patient);
+                      setIsBalanceModalOpen(true);
+                    }}
                   >
                     <MonetizationOn />
                   </IconButton>
@@ -299,6 +304,17 @@ const PatientManagement = () => {
         open={isViewModalOpen}
         patient={selectedPatient}
         onClose={() => setIsViewModalOpen(false)}
+      />
+      <BalanceModal
+        open={isBalanceModalOpen}
+        onClose={() => setIsBalanceModalOpen(false)}
+        patient={selectedPatient}
+        onSuccess={(message) => {
+          setSnackbarMessage(message);
+          setSnackbarSeverity("success");
+          setSnackbarOpen(true);
+          fetchPatients();
+        }}
       />
 
       <SnackbarNotification
@@ -389,7 +405,10 @@ const PatientManagement = () => {
                 type="number"
                 value={newPatient.phoneNumber}
                 onChange={(e) =>
-                  setNewPatient({ ...newPatient, phoneNumber: e.target.value })
+                  setNewPatient({
+                    ...newPatient,
+                    phoneNumber: e.target.value,
+                  })
                 }
                 required
               />
@@ -405,8 +424,7 @@ const PatientManagement = () => {
                   const departments = tempDepartmentsInput
                     .split(",")
                     .map((dept) => dept.trim())
-                    .filter((dept) => dept.length > 0)
-                    
+                    .filter((dept) => dept.length > 0);
 
                   setNewPatient({
                     ...newPatient,
@@ -418,19 +436,24 @@ const PatientManagement = () => {
             </Grid>
           </Grid>
           <Box
-            sx={{ mt: 3, display: "flex", justifyContent: "flex-end", gap: 2 }}
+            sx={{
+              mt: 3,
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: 2,
+            }}
           >
             <Button
               variant="outli2ned"
               onClick={() => setIsAddModalOpen(false)}
             >
-              Cancel
+              Đóng
             </Button>
             <Button
               variant="contained"
               onClick={() => handleAddPatient(newPatient)}
             >
-              Submit
+              Xác nhận
             </Button>
           </Box>
         </ModalContent>
@@ -468,7 +491,10 @@ const PatientManagement = () => {
                 type="email"
                 value={updatePatient.email}
                 onChange={(e) =>
-                  setUpdatePatient({ ...updatePatient, email: e.target.value })
+                  setUpdatePatient({
+                    ...updatePatient,
+                    email: e.target.value,
+                  })
                 }
                 required
               />
@@ -517,7 +543,7 @@ const PatientManagement = () => {
               />
             </Grid>
             <Grid item xs={12}>
-            <TextField
+              <TextField
                 fullWidth
                 label="Khoa"
                 placeholder="Nhập khoa, cách nhau bằng dấu phẩy"
@@ -527,12 +553,11 @@ const PatientManagement = () => {
                   const departments = tempDepartmentsInput
                     .split(",")
                     .map((dept) => dept.trim())
-                    .filter((dept) => dept.length > 0)
+                    .filter((dept) => dept.length > 0);
 
                   setUpdatePatient({
                     ...updatePatient,
                     departments,
-                    
                   });
                 }}
                 required
@@ -540,7 +565,12 @@ const PatientManagement = () => {
             </Grid>
           </Grid>
           <Box
-            sx={{ mt: 3, display: "flex", justifyContent: "flex-end", gap: 2 }}
+            sx={{
+              mt: 3,
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: 2,
+            }}
           >
             <Button
               variant="outlined"

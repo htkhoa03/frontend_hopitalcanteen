@@ -247,7 +247,7 @@ const Cart = () => {
           variant="contained"
           onClick={handleCheckoutClick}
           startIcon={<ShoppingCartCheckoutIcon />}
-          sx={{ flex: 1, fontWeight: "bold", backgroundColor: "#43a047" }}
+          sx={{ flex: 1, fontWeight: "bold", backgroundColor: "primary" }}
         >
           Mua
         </Button>

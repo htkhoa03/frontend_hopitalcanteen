@@ -61,7 +61,7 @@ const Product = ({ product, addToCart }) => {
         <Typography
           variant="h6"
           component="div"
-          sx={{ fontWeight: "bold" }}
+          sx={{ fontWeight: "bold", fontSize: "17px" }}
           gutterBottom
         >
           {product.name}
@@ -71,12 +71,15 @@ const Product = ({ product, addToCart }) => {
           color="text.secondary"
           sx={{ marginBottom: "8px" }}
         >
-          Giá: {product.price.toLocaleString()} đ
+          Giá:{" "}
+          <Typography component="span" sx={{ fontWeight: "bold" }}>
+            {product.price.toLocaleString()} đ
+          </Typography>
         </Typography>
-        <Typography variant="body2" color="text.secondary">
+        {/* <Typography variant="body2" color="text.secondary">
           Số lượng:{" "}
           {product.stock?.quantity > 0 ? product.stock.quantity : "Hết hàng"}
-        </Typography>
+        </Typography> */}
       </CardContent>
 
       {/* Nút Add to Cart */}

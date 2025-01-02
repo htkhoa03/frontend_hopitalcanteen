@@ -15,23 +15,33 @@ import {
   Tabs,
   Tab,
   Pagination,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
-import { Check, Delete } from "@mui/icons-material";
+import { Check, Delete, Print } from "@mui/icons-material";
 import {
   cancelOrders,
   confirmOrders,
   getAllOrdersByStatus,
 } from "../../axios/orderService";
+import PrintBill from "../PrintBill";
 
 const OrdersManagement = () => {
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [orderStatus, setOrderStatus] = useState("PENDING");
+  const [openDialog, setOpenDialog] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [confirmingOrderId, setConfirmingOrderId] = useState(null);
 
   const orderStatuses = [
     { label: "Đơn hàng chờ", value: "PENDING" },
     { label: "Đơn hàng đã xác nhận", value: "CONFIRMED" },
     { label: "Đơn hàng đã hủy", value: "CANCELED" },
   ];
+
+  const [isPrinted, setIsPrinted] = useState(false);
 
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(10);
@@ -63,16 +73,24 @@ const OrdersManagement = () => {
     handleOrderByStatus(orderStatus, page, size);
   }, []);
 
-  // Confirm order
   const handleConfirmOrder = async (orderId) => {
+    setConfirmingOrderId(orderId);
+    const order = filteredOrders.find((o) => o.id === orderId);
+    setSelectedOrder(order);
+    setOpenDialog(true);
+  };
+
+  const handleConfirmAfterPrint = async () => {
     try {
-      await confirmOrders(orderId);
+      await confirmOrders(confirmingOrderId);
+      handleOrderByStatus(orderStatus);
+
       setSnackbar({
         open: true,
         message: "Xác nhận đơn hàng thành công!",
         severity: "success",
       });
-      handleOrderByStatus(orderStatus);
+      setOpenDialog(false);
     } catch {
       setSnackbar({
         open: true,
@@ -100,6 +118,7 @@ const OrdersManagement = () => {
       });
     }
   };
+
   const handlePageChange = (event, value) => {
     setPage(value);
   };
@@ -181,6 +200,24 @@ const OrdersManagement = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      {/* in bill */}
+      <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
+        <DialogTitle>In Hóa Đơn</DialogTitle>
+        <DialogContent>
+          {selectedOrder && (
+            <PrintBill
+              selectedOrder={selectedOrder}
+              onPrintComplete={handleConfirmAfterPrint}
+            />
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDialog(false)} color="secondary">
+            Đóng
+          </Button>
+        </DialogActions>
+      </Dialog>
       <Box
         sx={{
           display: "flex",

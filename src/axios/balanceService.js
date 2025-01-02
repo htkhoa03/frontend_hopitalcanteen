@@ -14,13 +14,13 @@ export const getBalanceById = async (patientId) =>{
 }
 
 //nạp tiền bệnh nhân
-export const topUpBalance = async (patientId) =>{
-    const res = await axios.put(`/balance/${patientId}/top-up`);
-    return res.data.data
+export const topUpBalanceAPI = async (patientId,balance) =>{
+    const res = await axios.put(`/balance/${patientId}/top-up`,balance);
+    return res.data.data.content;
 }
 
 // rút tiền bệnh nhân 
-export const withDrawBalance = async (patientId) =>{
-    const res = await axios.put(`/balance/${patientId}/withdraw`);
-    return res.data.data
+export const withDrawBalanceAPI = async (patientId,balance) =>{
+    const res = await axios.put(`/balance/${patientId}/withdraw`, balance);
+    return res.data.data.content;
 }

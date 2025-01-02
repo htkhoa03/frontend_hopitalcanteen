@@ -16,27 +16,54 @@ import {
 } from "@mui/material";
 import { Edit, Delete } from "@mui/icons-material";
 import * as XLSX from "xlsx";
-import { getAllUsers } from "../../axios/userService";
+import { addUser, getAllUsers, updateUser } from "../../axios/userService";
+import AddUser from "../userComponents/AddUser";
+import EditUser from "../userComponents/EditUser";
 
 const EmployeeManagement = () => {
   const [users, setUsers] = useState(null);
+  const [openAdd, setOpenAdd] = useState(false);
+  const [openEdit, setOpenEdit] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
 
+
+  const fetchUsers = async () => {
+    try {
+      const res = await getAllUsers(page, size);
+      setUsers(res);
+      setTotalPages(res.totalPages);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  };
+
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const res = await getAllUsers(page, size);
-        setUsers(res);
-        setTotalPages(res.totalPages);
-      } catch (error) {
-        console.error("Error fetching users:", error);
-      }
-    };
     fetchUsers();
   }, [page, size]);
+
+  const handleAddUser = async () => {
+    try {
+      await addUser();
+      fetchUsers();
+      setOpenAdd(false);
+    } catch (error) {
+      console.error("Error adding user:", error);
+    }
+
+  }
+  const handleUpdateUser = async () => {
+    try {
+      await updateUser(selectedUser.id, selectedUser);
+      fetchUsers();
+      setOpenEdit(false);
+    } catch (error) {
+      console.error("Error updating user:", error);
+    }
+  }
 
   const exportToExcel = () => {
     const ws = XLSX.utils.json_to_sheet(users);
@@ -153,12 +180,12 @@ const EmployeeManagement = () => {
           </TableHead>
           <TableBody>
             {users?.map((employee) => (
-              <TableRow key={employee.id}>
-                <TableCell align="center">{employee.fullName}</TableCell>
-                <TableCell align="center">{employee.role}</TableCell>
-                <TableCell align="center">{employee.department}</TableCell>
-                <TableCell align="center">{employee.username}</TableCell>
-                <TableCell align="center">{employee.password}</TableCell>
+              <TableRow key={employee?.id}>
+                <TableCell align="center">{employee?.fullName}</TableCell>
+                <TableCell align="center">{employee?.role}</TableCell>
+                <TableCell align="center">{employee?.department}</TableCell>
+                <TableCell align="center">{employee?.username}</TableCell>
+                <TableCell align="center">{employee?.password}</TableCell>
                 <TableCell align="center">
                   <IconButton color="primary">
                     <Edit />
@@ -188,6 +215,20 @@ const EmployeeManagement = () => {
           color="primary"
         />
       </Box>
+      {/* Add User Modal */}
+      <AddUser
+        open={openAdd}
+        handleClose={() => setOpenAdd(false)}
+        handleAddUser={handleAddUser}
+      />
+
+      {/* Edit User Modal */}
+      <EditUser
+        open={openEdit}
+        handleClose={() => setOpenEdit(false)}
+        user={selectedUser}
+        handleUpdateUser={handleUpdateUser}
+      />
     </Box>
   );
 };

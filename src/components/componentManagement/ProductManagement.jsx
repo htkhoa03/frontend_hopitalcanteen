@@ -114,19 +114,21 @@ const ProductManagement = () => {
       setIsAddModalOpen(false);
       setSnackbarMessage("Sản phẩm đã được thêm thành công!");
       setOpenSnackbar(true);
+      setNewProduct({
+        name: "",
+        price: "",
+        unit: "",
+        stock: { quantity: 0 },
+        category: null,
+        images: [],
+      });
     } catch (error) {
       console.error("Failed to add product:", error);
     }
   };
 
-  const handleFileChange = (event, isEdit = false) => {
-    const files = Array.from(event.target.files);
-    if (isEdit) {
-      setEditProduct({ ...editProduct, images: files });
-    } else {
-      setNewProduct({ ...newProduct, images: files });
-    }
-  };
+
+  
 
   // Chỉnh sửa sản phẩm
   const handleUpdateProduct = async () => {
@@ -136,11 +138,15 @@ const ProductManagement = () => {
     productData.append("unit", editProduct.unit);
     productData.append("quantity", editProduct.stock?.quantity);
     productData.append("category", editProduct.category.name);
-    if (editProduct.images) {
-      editProduct.images.forEach((image) =>
-        productData.append("images", image)
-      );
-    }
+    
+    editProduct.images = [];
+
+    // Append new images (if there are any new images)
+    editProduct.images.forEach((image) => {
+      if (image instanceof File) {
+        productData.append("images", image);  // Add new image files
+      }
+    });
 
     try {
       await axios.put(`/products/${editProduct.id}`, productData);
@@ -148,8 +154,25 @@ const ProductManagement = () => {
       setIsEditModalOpen(false);
       setSnackbarMessage("Sản phẩm đã được cập nhật thành công!");
       setOpenSnackbar(true);
+
+      setEditProduct(null);
+
     } catch (error) {
       console.error("Failed to update product:", error);
+    }
+  };
+  const handleFileChange = (event, isEdit = false) => {
+    const files = Array.from(event.target.files);
+    if (isEdit) {
+      setEditProduct((prev) => ({
+        ...prev,
+        images: [...prev.images.filter((img) => !(img instanceof File)), ...files],
+      }));
+    } else {
+      setNewProduct((prev) => ({
+        ...prev,
+        images: [...prev.images, ...files],
+      }));
     }
   };
 
@@ -260,7 +283,7 @@ const ProductManagement = () => {
           <TableBody>
             {filteredProducts.map((product) => (
               <TableRow key={product.id}>
-                <TableCell align="center">{product.name}</TableCell>
+                <TableCell align="center" >{product.name}</TableCell>
                 <TableCell align="center">
                   <img
                     src={`http://localhost:8080${
