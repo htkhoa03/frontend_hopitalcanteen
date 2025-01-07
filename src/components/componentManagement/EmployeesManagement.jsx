@@ -16,20 +16,38 @@ import {
 } from "@mui/material";
 import { Edit, Delete } from "@mui/icons-material";
 import * as XLSX from "xlsx";
-import { addUser, getAllUsers, updateUser } from "../../axios/userService";
+import {
+  addUser,
+  deleteUserAPI,
+  getAllUsers,
+  updateUserAPI,
+} from "../../axios/userService";
 import AddUser from "../userComponents/AddUser";
 import EditUser from "../userComponents/EditUser";
+import DeleteUser from "../userComponents/DeleteUser";
+import SnackbarNotification from "../SnackbarNotification";
 
 const EmployeeManagement = () => {
   const [users, setUsers] = useState(null);
   const [openAdd, setOpenAdd] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
+  const [openDelete, setOpenDelete] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
+
 
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
 
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("success");
+
+  const handleShowSnackbar = (message, severity) => {
+    setSnackbarMessage(message);
+    setSnackbarSeverity(severity);
+    setSnackbarOpen(true);
+  };
 
   const fetchUsers = async () => {
     try {
@@ -45,26 +63,41 @@ const EmployeeManagement = () => {
     fetchUsers();
   }, [page, size]);
 
-  const handleAddUser = async () => {
+  const handleAddUser = async (userData) => {
     try {
-      await addUser();
+      await addUser(userData);
+      console.log("Người dùng được thêm thành công:", userData);
       fetchUsers();
       setOpenAdd(false);
     } catch (error) {
       console.error("Error adding user:", error);
     }
-
-  }
-  const handleUpdateUser = async () => {
+  };
+  const handleUpdateUser = async (updateUser) => {
     try {
-      await updateUser(selectedUser.id, selectedUser);
+      await updateUserAPI(selectedUser.userId, updateUser);
       fetchUsers();
       setOpenEdit(false);
     } catch (error) {
       console.error("Error updating user:", error);
     }
-  }
+  };
 
+  const handleDeleteUser = async (deleteUser) => {
+    try {
+      await deleteUserAPI(selectedUser.userId, deleteUser);
+      
+      fetchUsers();
+      setOpenDelete(false);
+    } catch (error) {
+      console.error("Error updating user:", error);
+    }
+  };
+
+  const handleCloseDeleteDialog = () => {
+    setSelectedUser(null);
+    setOpenDelete(false);
+  };
   const exportToExcel = () => {
     const ws = XLSX.utils.json_to_sheet(users);
     const wb = XLSX.utils.book_new();
@@ -115,6 +148,7 @@ const EmployeeManagement = () => {
               color: "#fff",
               mr: 2,
             }}
+            onClick={() => setOpenAdd(true)}
           >
             Thêm nhân viên mới
           </Button>
@@ -164,12 +198,7 @@ const EmployeeManagement = () => {
               >
                 Username
               </TableCell>
-              <TableCell
-                align="center"
-                sx={{ color: "#fff", fontWeight: "bold" }}
-              >
-                Password
-              </TableCell>
+
               <TableCell
                 align="center"
                 sx={{ color: "#fff", fontWeight: "bold" }}
@@ -180,17 +209,33 @@ const EmployeeManagement = () => {
           </TableHead>
           <TableBody>
             {users?.map((employee) => (
-              <TableRow key={employee?.id}>
+              <TableRow key={employee?.userId}>
                 <TableCell align="center">{employee?.fullName}</TableCell>
-                <TableCell align="center">{employee?.role}</TableCell>
-                <TableCell align="center">{employee?.department}</TableCell>
-                <TableCell align="center">{employee?.username}</TableCell>
-                <TableCell align="center">{employee?.password}</TableCell>
                 <TableCell align="center">
-                  <IconButton color="primary">
+                  {employee?.roles?.[0]?.name}
+                </TableCell>
+                <TableCell align="center">
+                  {employee?.departments?.[0]?.departmentName }
+                </TableCell>
+                <TableCell align="center">{employee?.username}</TableCell>
+
+                <TableCell align="center">
+                  <IconButton
+                    color="primary"
+                    onClick={() => {
+                      setSelectedUser(employee);
+                      setOpenEdit(true);
+                    }}
+                  >
                     <Edit />
                   </IconButton>
-                  <IconButton color="error">
+                  <IconButton
+                    color="error"
+                    onClick={() => {
+                      setSelectedUser(employee);
+                      setOpenDelete(true);
+                    }}
+                  >
                     <Delete />
                   </IconButton>
                 </TableCell>
@@ -228,6 +273,22 @@ const EmployeeManagement = () => {
         handleClose={() => setOpenEdit(false)}
         user={selectedUser}
         handleUpdateUser={handleUpdateUser}
+      />
+
+      {/* Delete User Modal */}
+      <DeleteUser
+        open={openDelete}
+        handleClose={handleCloseDeleteDialog}
+        userId={selectedUser}
+        handleDeleteUser={handleDeleteUser}
+        handleShowSnackbar={handleShowSnackbar}
+      />
+
+      <SnackbarNotification
+        open={snackbarOpen}
+        message={snackbarMessage}
+        severity={snackbarSeverity}
+        onClose={() => setSnackbarOpen(false)} // Close Snackbar when the user dismisses it
       />
     </Box>
   );

@@ -123,7 +123,7 @@ const OrdersManagement = () => {
     setPage(value);
   };
   return (
-    <Box sx={{ backgroundColor: "#f9f9f9", minHeight: "100vh", p: 3, mt: 5 }}>
+    <Box sx={{  minHeight: "100vh", p: 3, mt: 5 }}>
       <Typography
         variant="h4"
         sx={{
@@ -136,8 +136,6 @@ const OrdersManagement = () => {
         Quản lý đơn hàng
       </Typography>
 
-      {/* Bộ lọc trạng thái */}
-      {/* Tabs chuyển đổi trạng thái */}
       <Tabs
         value={orderStatus}
         onChange={(e, newValue) => handleOrderByStatus(newValue)}

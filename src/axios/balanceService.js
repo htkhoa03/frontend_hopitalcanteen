@@ -13,14 +13,27 @@ export const getBalanceById = async (patientId) =>{
     return res.data.data;
 }
 
-//nạp tiền bệnh nhân
-export const topUpBalanceAPI = async (patientId,balance) =>{
-    const res = await axios.put(`/balance/${patientId}/top-up`,balance);
+// Nạp tiền bệnh nhân
+export const topUpBalanceAPI = async (patientId, balance) => {
+    const res = await axios.put(
+      `/balance/${patientId}/top-up`,
+      {balance }
+     
+    );
     return res.data.data.content;
-}
-
-// rút tiền bệnh nhân 
-export const withDrawBalanceAPI = async (patientId,balance) =>{
-    const res = await axios.put(`/balance/${patientId}/withdraw`, balance);
+  };
+  
+  // Rút tiền bệnh nhân
+  export const withDrawBalanceAPI = async (patientId, balance) => {
+    const res = await axios.put(
+      `/balance/${patientId}/withdraw`,
+      { amount: balance }, // Gửi dưới dạng JSON object
+      {
+        headers: {
+          "Content-Type": "application/json", // Đặt Content-Type là application/json
+        },
+      }
+    );
     return res.data.data.content;
-}
+  };
+  

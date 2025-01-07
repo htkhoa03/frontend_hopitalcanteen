@@ -128,13 +128,8 @@ const Home = () => {
 
   const addToCart = async (product) => {
     try {
-      
-        
-        
-        
-    
-      // Thêm sản phẩm vào giỏ hàng hiện tại
-      await addToCartAPI( product.id, 1); // Đảm bảo API này nhận đúng tham số (cartId, productId, quantity)
+
+      await addToCartAPI( product.id, 1);
       await fetchCart(cartId);
       dispatch(setCartId(cartId));  
       await getCartAPI(cartId);
@@ -146,8 +141,6 @@ const Home = () => {
       });
     } catch (error) {
       console.error("Error adding to cart:", error);
-  
-      // Hiển thị thông báo lỗi
       setSnackbar({
         open: true,
         message: "Không thể thêm sản phẩm vào giỏ hàng.",

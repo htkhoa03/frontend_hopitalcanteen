@@ -10,17 +10,17 @@ export const getAllUsers = async (page=0, size=12, sortBy="id", sortDirection="a
     return res.data.data.content;
 }
 // add 
-export const addUser = async () =>{
-    const res = await axios.post("/users/create-user");
-    return res.data.data;
+export const addUser = async (userData) =>{
+    const res = await axios.post("/users/create-user", userData);
+    return res.data.data.content;
 }
 // update 
-export const updateUser = async (userId) =>{
-    const res = await axios.put(`/users/${userId}/update-user`);
-    return res.data.data;
+export const updateUserAPI = async (userId, updateUser) =>{
+    const res = await axios.put(`/users/${userId}/update-user`,updateUser);
+    return res.data.data.content;
 }
 // delete
-export const deleteUser = async (userId) =>{
-    const res = await axios.delete(`/users/${userId}/delete-user`);
-    return res.data.data;
+export const deleteUserAPI = async (userId, deleteUser) =>{
+    const res = await axios.delete(`/users/${userId}/delete-user`, deleteUser);
+    return res.data.data.content;
 }

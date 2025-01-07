@@ -1,5 +1,5 @@
 import React from "react";
-import SalesTable from "./SalesTable"; // Gọi lại SalesTable
+import SalesTable from "./SalesTable"; 
 
 const SalesByPatient = () => {
   return (

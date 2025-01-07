@@ -17,7 +17,7 @@ function AccountingManagement() {
         Báo cáo thống kê
       </Typography>
 
-      <Tabs value={tabIndex} onChange={handleChange} aria-label="report tabs" >
+      <Tabs value={tabIndex} onChange={handleChange} aria-label="report tabs" sx={{marginBottom: "20px"}} >
         <Tab label="Thống kê" />
         <Tab label="Doanh thu theo nhân viên" />
         <Tab label="Bán hàng theo bệnh nhân" />

@@ -13,8 +13,6 @@ import {
   Button,
   TextField,
   Dialog,
-  DialogTitle,
-  DialogContent,
   DialogActions,
   Divider,
   IconButton,
@@ -33,7 +31,7 @@ import {
 import { createOrderAPI } from "../axios/orderService";
 
 import useDebounce from "../hooks/useDeBounce";
-import { setPatients } from "../redux/patientSlice";
+import { CheckCircle, ErrorOutline } from "@mui/icons-material";
 const Cart = () => {
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [isErrorDialogOpen, setErrorDialogOpen] = useState(false);
@@ -45,8 +43,6 @@ const Cart = () => {
   const patientOrder = useSelector(
     (state) => state.patient?.patient?.patientId
   );
-
-  
 
   const [quantityChanges, setQuantityChanges] = useState({});
   const debouncedQuantityChanges = useDebounce(quantityChanges, 50);
@@ -89,9 +85,10 @@ const Cart = () => {
 
   const handleCheckoutClick = async () => {
     try {
-      const res = await createOrderAPI(patientOrder);
+      await createOrderAPI(patientOrder);
       setDialogOpen(true);
-      dispatch(setPatients(res.patientOrder));
+      dispatch(clearCart(cartItems));
+
       console.log("patientId", patientOrder);
     } catch (error) {
       console.error("Error during checkout:", error);
@@ -254,18 +251,64 @@ const Cart = () => {
       </Box>
 
       <Dialog open={isDialogOpen} onClose={handleCloseDialog}>
-        <DialogTitle>Thanh toán thành công!</DialogTitle>
-        <DialogContent>Cảm ơn bạn đã mua hàng.</DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Đóng</Button>
-        </DialogActions>
+        <Box
+          sx={{
+            textAlign: "center",
+            p: 3,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+          }}
+        >
+          <CheckCircle sx={{ fontSize: 60, color: "#4caf50", mb: 2 }} />
+          <Typography variant="h6" gutterBottom>
+            Thanh toán thành công!
+          </Typography>
+          <Typography variant="body1" color="textSecondary">
+            Cảm ơn bạn đã mua hàng.
+          </Typography>
+          <DialogActions sx={{ mt: 3 }}>
+            <Button
+              variant="contained"
+              color="success"
+              onClick={handleCloseDialog}
+              sx={{ textTransform: "none", px: 4 }}
+            >
+              Đóng
+            </Button>
+          </DialogActions>
+        </Box>
       </Dialog>
+
       <Dialog open={isErrorDialogOpen} onClose={handleCloseDialog}>
-        <DialogTitle>Lỗi</DialogTitle>
-        <DialogContent>Số dư không đủ.</DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Đóng</Button>
-        </DialogActions>
+        <Box
+          sx={{
+            textAlign: "center",
+            p: 3,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            width: "300px",
+          }}
+        >
+          <ErrorOutline sx={{ fontSize: 60, color: "#f44336", mb: 2 }} />
+          <Typography variant="h6" gutterBottom>
+            Lỗi
+          </Typography>
+          <Typography variant="body1" color="textSecondary">
+            Số dư không đủ.
+          </Typography>
+          <DialogActions sx={{ mt: 3 }}>
+            <Button
+              variant="contained"
+              color="error"
+              onClick={handleCloseDialog}
+              sx={{ textTransform: "none", px: 4 }}
+            >
+              Đóng
+            </Button>
+          </DialogActions>
+        </Box>
       </Dialog>
     </Box>
   );

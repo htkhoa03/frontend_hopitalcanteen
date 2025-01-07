@@ -208,7 +208,7 @@ const ProductManagement = () => {
   return (
     <Box
       sx={{
-        backgroundColor: "#f9f9f9",
+        
         minHeight: "100vh",
         padding: "20px",
       }}

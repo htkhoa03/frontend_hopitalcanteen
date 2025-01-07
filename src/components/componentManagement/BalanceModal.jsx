@@ -12,22 +12,22 @@ import { topUpBalanceAPI, withDrawBalanceAPI } from "../../axios/balanceService"
 
 const BalanceModal = ({ open, onClose, patient, onSuccess }) => {
   const [balanceAmount, setBalanceAmount] = useState("");
-  const [isDeposit, setIsDeposit] = useState(true); // For toggling between deposit and withdraw actions
+  const [isDeposit, setIsDeposit] = useState(true); 
   const [errorMessage, setErrorMessage] = useState("");
 
   const handleBalanceAction = async () => {
-    if (parseFloat(balanceAmount) <= 0) {
+    if ((balanceAmount) <= 0) {
       setErrorMessage("Please enter a valid amount.");
       return;
     }
 
     try {
       if (isDeposit) {
-        await topUpBalanceAPI(patient.patientId, parseFloat(balanceAmount));
-        onSuccess("Balance deposited successfully!");
+        await topUpBalanceAPI(patient.patientId, Number(balanceAmount));
+        onSuccess("Nạp tiền thành công!");
       } else {
-        await withDrawBalanceAPI(patient.patientId, parseFloat(balanceAmount));
-        onSuccess("Balance withdrawn successfully!");
+        await withDrawBalanceAPI(patient.patientId, Number(balanceAmount));
+        onSuccess("Nạp tiền không thành công!");
       }
       onClose();
     } catch (error) {
@@ -53,7 +53,7 @@ const BalanceModal = ({ open, onClose, patient, onSuccess }) => {
           {isDeposit ? "Nạp tiền" : "Rút tiền"}
         </Typography>
         <Typography variant="body2" color="textSecondary">
-          Số dư hiện tại: {patient?.patientBalance?.balance || "N/A"} VND
+          Số dư hiện tại: {patient?.patientBalance?.balance || "N/A"} Đ
         </Typography>
 
         <Divider sx={{ my: 2 }} />

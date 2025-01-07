@@ -1,26 +1,92 @@
 import React, { useState, useEffect } from "react";
-import { Button, TextField, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Select, InputLabel, FormControl } from "@mui/material";
+import {
+  Button,
+  TextField,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+} from "@mui/material";
+import SnackbarNotification from "../SnackbarNotification";
 
 const EditUser = ({ open, handleClose, user, handleUpdateUser }) => {
-  const [formData, setFormData] = useState(user);
+  const [formData, setFormData] = useState({
+    fullName: "",
+    username: "",
+    password: "",
+    roles: { name: "" },
+    departments: "",
+  });
+
+
+    const [snackbar, setSnackbar] = useState({
+      open: false,
+      message: "",
+      severity: "success",
+    });
+  
+    const handleSnackbarClose = () => {
+      setSnackbar((prev) => ({ ...prev, open: false }));
+    };
+  
 
   useEffect(() => {
-    setFormData(user);
+    setFormData({
+      fullName: user?.fullName || "",
+      username: user?.username || "",
+      password: "", 
+      roles: { name: user?.roles?.name || "" },
+      departments: (user?.departments.departmentName || []).join(", "), 
+    });
   }, [user]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+
+    if (name === "rolesName") {
+      setFormData((prevData) => ({
+        ...prevData,
+        roles: { ...prevData.roles, name: value },
+      }));
+    } else {
+      setFormData((prevData) => ({
+        ...prevData,
+        [name]: value,
+      }));
+    }
   };
 
-  const handleSubmit = () => {
-    handleUpdateUser(formData);
+  const handleSubmit = async () => {
+    try {
+      const dataToSend = {
+        fullName: formData.fullName.trim(),
+        username: formData.username.trim(),
+        password: formData.password.trim() || undefined, 
+        roles: formData.roles.name.trim(),
+        departments: formData?.departments
+          .split(",")
+          .map((dep) => dep.trim())
+          .filter((dep) => dep.length > 0),
+      };
+
+      await handleUpdateUser(dataToSend); 
+      setSnackbar({
+        open: true,
+        message: "Chỉnh sửa nhân viên thành công!",
+        severity: "success",
+      });
+    } catch (error) {
+      setSnackbar({
+        open: true,
+        message: "Chỉnh sửa nhân viên không thành công!",
+        severity: "error",
+      });
+      console.error("Error updating user:", error);
+    }
   };
 
   return (
+    <>
     <Dialog open={open} onClose={handleClose}>
       <DialogTitle>Sửa Thông Tin Nhân Viên</DialogTitle>
       <DialogContent>
@@ -30,17 +96,9 @@ const EditUser = ({ open, handleClose, user, handleUpdateUser }) => {
           fullWidth
           margin="normal"
           name="fullName"
-          value={formData?.fullName}
+          value={formData.fullName}
           onChange={handleChange}
-        />
-        <TextField
-          label="Username"
-          variant="outlined"
-          fullWidth
-          margin="normal"
-          name="username"
-          value={formData?.username}
-          onChange={handleChange}
+          required
         />
         <TextField
           label="Password"
@@ -49,34 +107,30 @@ const EditUser = ({ open, handleClose, user, handleUpdateUser }) => {
           margin="normal"
           name="password"
           type="password"
-          value={formData?.password}
+          value={formData.password}
           onChange={handleChange}
         />
-        <FormControl fullWidth margin="normal">
-          <InputLabel>Vai trò</InputLabel>
-          <Select
-            label="Vai trò"
-            name="role"
-            value={formData?.role}
-            onChange={handleChange}
-          >
-            <MenuItem value="admin">Admin</MenuItem>
-            <MenuItem value="staff">Nhân viên</MenuItem>
-          </Select>
-        </FormControl>
-        <FormControl fullWidth margin="normal">
-          <InputLabel>Khoa</InputLabel>
-          <Select
-            label="Khoa"
-            name="department"
-            value={formData?.department}
-            onChange={handleChange}
-          >
-            <MenuItem value="IT">IT</MenuItem>
-            <MenuItem value="HR">HR</MenuItem>
-            <MenuItem value="Finance">Tài chính</MenuItem>
-          </Select>
-        </FormControl>
+        <TextField
+          label="Vai trò"
+          variant="outlined"
+          fullWidth
+          margin="normal"
+          name="rolesName"
+          value={formData.roles.name}
+          onChange={handleChange}
+          required
+        />
+        <TextField
+          label="Khoa"
+          placeholder="Nhập khoa, cách nhau bằng dấu phẩy"
+          variant="outlined"
+          fullWidth
+          margin="normal"
+          name="departments"
+          value={formData?.departments}
+          onChange={handleChange}
+          required
+        />
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} color="secondary">
@@ -87,6 +141,13 @@ const EditUser = ({ open, handleClose, user, handleUpdateUser }) => {
         </Button>
       </DialogActions>
     </Dialog>
+    <SnackbarNotification
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={handleSnackbarClose}
+      />
+      </>
   );
 };
 

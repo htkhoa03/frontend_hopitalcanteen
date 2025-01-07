@@ -1,162 +1,37 @@
-import React, { useState } from "react";
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Grid, Button } from "@mui/material";
+import React from "react";
+import { Grid, Button } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers";
+import * as XLSX from "xlsx";
 import DatePickerProvider from "../DatePickerProvider";
 
-const sampleDataByEmployee = [
-  {
-    id: 1,
-    patientCode: "BN001",
-    cardCode: "TH001",
-    fullName: "Nguyễn Văn A",
-    product: "Thuốc A",
-    categoryCode: "D001",
-    unit: "Hộp",
-    price: 100000,
-    quantity: 2,
-    department: "Khoa A",
-    employee: "Nhân viên 1",
-    date: "2025-01-01",
-    total: 200000,
-  },
-  {
-    id: 2,
-    patientCode: "BN002",
-    cardCode: "TH002",
-    fullName: "Trần Thị B",
-    product: "Thuốc B",
-    categoryCode: "D002",
-    unit: "Lọ",
-    price: 50000,
-    quantity: 5,
-    department: "Khoa B",
-    employee: "Nhân viên 2",
-    date: "2025-01-02",
-    total: 250000,
-  },
-];
-
-const sampleDataByPatient = [
-  {
-    id: 1,
-    cardCode: "TH001",
-    patientName: "Nguyễn Văn A",
-    productCode: "MH001",
-    product: "Thuốc A",
-    categoryCode: "D001",
-    unit: "Hộp",
-    price: 100000,
-    department: "Khoa A",
-    quantity: 2,
-    total: 200000,
-  },
-  {
-    id: 2,
-    cardCode: "TH002",
-    patientName: "Trần Thị B",
-    productCode: "MH002",
-    product: "Thuốc B",
-    categoryCode: "D002",
-    unit: "Lọ",
-    price: 50000,
-    department: "Khoa B",
-    quantity: 5,
-    total: 250000,
-  },
-];
-
-const SalesTable = ({ tabType }) => {
-  const [startDate, setStartDate] = useState(null);
-  const [endDate, setEndDate] = useState(null);
-
-  const handleExport = () => {
-    const formattedStartDate = startDate ? startDate.format("YYYY-MM-DD") : null;
-    const formattedEndDate = endDate ? endDate.format("YYYY-MM-DD") : null;
-    console.log("Xuất thống kê từ:", formattedStartDate, "đến:", formattedEndDate);
-    // Thêm logic xử lý xuất dữ liệu
-  };
-
-  const renderTableHeaders = () => {
-    switch (tabType) {
-      case "employee":
-        return (
-          <>
-            <TableCell>STT</TableCell>
-            <TableCell>Mã bệnh nhân</TableCell>
-            <TableCell>Mã thẻ</TableCell>
-            <TableCell>Họ và tên</TableCell>
-            <TableCell>Hàng hóa</TableCell>
-            <TableCell>Danh mục</TableCell>
-            <TableCell>Đơn vị tính</TableCell>
-            <TableCell>Giá</TableCell>
-            <TableCell>Khoa</TableCell>
-            <TableCell>Số lượng</TableCell>
-            <TableCell>Ngày</TableCell>
-            <TableCell>Nhân viên</TableCell>
-          </>
-        );
-      case "patient":
-        return (
-          <>
-            <TableCell>STT</TableCell>
-            <TableCell>Mã thẻ</TableCell>
-            <TableCell>Tên bệnh nhân</TableCell>
-            <TableCell>Mã hàng hóa</TableCell>
-            <TableCell>Hàng hóa</TableCell>
-            <TableCell>Mã danh mục</TableCell>
-            <TableCell>Đơn vị tính</TableCell>
-            <TableCell>Giá bán</TableCell>
-            <TableCell>Khoa</TableCell>
-            <TableCell>Số lượng</TableCell>
-            <TableCell>Thành tiền</TableCell>
-          </>
-        );
-      default:
-        return null;
+const SalesTable = ({ startDate, setStartDate, endDate, setEndDate, goodsData }) => {
+  const handleExportExcel = () => {
+    if (!goodsData || goodsData.length === 0) {
+      alert("Không có dữ liệu để xuất.");
+      return;
     }
-  };
 
-  const renderTableRows = () => {
-    const data = tabType === "employee" ? sampleDataByEmployee : sampleDataByPatient;
+    const formattedData = goodsData.map((item, index) => ({
+      STT: index + 1,
+      "Hàng hóa": item.name,
+      "Danh mục": item.category,
+      "Đơn vị tính": item.unit,
+      "Giá bán": item.price,
+      "Số lượng": item.quantity,
+      "Thành tiền": item.total,
+    }));
 
-    return data.map((row, index) => (
-      <TableRow key={row.id}>
-        <TableCell>{index + 1}</TableCell>
-        {tabType === "employee" ? (
-          <>
-            <TableCell>{row.patientCode}</TableCell>
-            <TableCell>{row.cardCode}</TableCell>
-            <TableCell>{row.fullName}</TableCell>
-            <TableCell>{row.product}</TableCell>
-            <TableCell>{row.categoryCode}</TableCell>
-            <TableCell>{row.unit}</TableCell>
-            <TableCell>{row.price.toLocaleString()}</TableCell>
-            <TableCell>{row.department}</TableCell>
-            <TableCell>{row.quantity}</TableCell>
-            <TableCell>{row.date}</TableCell>
-            <TableCell>{row.employee}</TableCell>
-          </>
-        ) : (
-          <>
-            <TableCell>{row.cardCode}</TableCell>
-            <TableCell>{row.patientName}</TableCell>
-            <TableCell>{row.productCode}</TableCell>
-            <TableCell>{row.product}</TableCell>
-            <TableCell>{row.categoryCode}</TableCell>
-            <TableCell>{row.unit}</TableCell>
-            <TableCell>{row.price.toLocaleString()}</TableCell>
-            <TableCell>{row.department}</TableCell>
-            <TableCell>{row.quantity}</TableCell>
-            <TableCell>{row.total.toLocaleString()}</TableCell>
-          </>
-        )}
-      </TableRow>
-    ));
+    const worksheet = XLSX.utils.json_to_sheet(formattedData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Thống kê");
+    const fileName = `ThongKe_${startDate?.format("YYYY-MM-DD") || "tungay"}_to_${endDate?.format("YYYY-MM-DD") || "denngay"}.xlsx`;
+
+    XLSX.writeFile(workbook, fileName);
   };
 
   return (
     <DatePickerProvider>
-      <Grid container spacing={2} sx={{ marginBottom: 2 }}>
+      <Grid container spacing={2} sx={{ marginBottom: 2  }}>
         <Grid item xs={12} md={5}>
           <DatePicker
             label="Từ ngày"
@@ -179,22 +54,13 @@ const SalesTable = ({ tabType }) => {
           <Button
             variant="contained"
             color="primary"
-            onClick={handleExport}
+            onClick={handleExportExcel}
             sx={{ height: "100%", width: "100%" }}
           >
             Xuất Excel
           </Button>
         </Grid>
       </Grid>
-
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>{renderTableHeaders()}</TableRow>
-          </TableHead>
-          <TableBody>{renderTableRows()}</TableBody>
-        </Table>
-      </TableContainer>
     </DatePickerProvider>
   );
 };
